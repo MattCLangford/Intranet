@@ -42,12 +42,11 @@
       height: 100%;
       display: block;
     }
-    .node {
+    .node rect {
       stroke: #0f172a;
       stroke-width: 3;
       rx: 32;
       ry: 32;
-      cursor: pointer;
       filter: drop-shadow(0 8px 14px rgba(0,0,0,.6));
       transition: all 0.3s ease-in-out;
     }
@@ -57,7 +56,7 @@
       font-weight: 800;
       pointer-events: none;
       text-anchor: middle;
-      dominant-baseline: middle;
+      dominant-baseline: hanging;
       transition: all 0.3s ease-in-out;
     }
     .subtext {
@@ -75,17 +74,17 @@
       marker-end: url(#arrow);
       transition: all 0.3s ease-in-out;
     }
-    .dimmed {
-      transform: scale(0.95);
+    .dimmed rect {
       filter: grayscale(100%) brightness(0.5);
+      transform: scale(0.95);
     }
-    .dimmed-text {
+    .dimmed text {
       fill: #6b7280 !important;
     }
     .dimmed-edge {
       stroke: #1f2937 !important;
     }
-    .highlight {
+    .highlight rect {
       transform: scale(1.05);
     }
   </style>
@@ -97,7 +96,7 @@
   </header>
 
   <div class="canvas" id="canvas">
-    <svg id="svg" viewBox="0 0 4000 1600">
+    <svg id="svg" viewBox="0 0 2000 4000">
       <defs>
         <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="14" markerHeight="14" orient="auto-start-reverse">
           <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"></path>
@@ -137,7 +136,7 @@
   </div>
 
   <script>
-    const milestones=[
+    const milestones = [
       { id:'enquiry', title:'Enquiry received & logged', substeps:[
         'Capture via web, email or phone',
         'Log in CRM/Opsync',
@@ -184,38 +183,36 @@
 
     function drawFlow(items){
       clear();
-      const NODE_W=700, SPACING=300;
+      const NODE_W=800, SPACING=200;
+      const centerX = 1000 - NODE_W/2;
+      let y = 200;
       items.forEach((s,i)=>{
-        const x=100+i*(NODE_W+SPACING);
-        const y=400;
-        const g=document.createElementNS('http://www.w3.org/2000/svg','g');
-        g.setAttribute('data-id',s.id);
-
-        // calculate height
         const lineCount=s.substeps.length+1;
         const NODE_H=140+(lineCount*40);
 
+        const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+        g.setAttribute('data-id',s.id);
+        g.setAttribute('class','node');
+
         const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
-        rect.setAttribute('x',x);
+        rect.setAttribute('x',centerX);
         rect.setAttribute('y',y);
         rect.setAttribute('width',NODE_W);
         rect.setAttribute('height',NODE_H);
-        rect.setAttribute('class','node');
         rect.setAttribute('fill',`url(#grad${i%7})`);
 
         const label=document.createElementNS('http://www.w3.org/2000/svg','text');
-        label.setAttribute('x',x+NODE_W/2);
-        label.setAttribute('y',y+60);
+        label.setAttribute('x',centerX+NODE_W/2);
+        label.setAttribute('y',y+50);
         label.setAttribute('class','label');
         label.textContent=s.title;
 
         g.appendChild(rect);
         g.appendChild(label);
 
-        // substeps bullets
         s.substeps.forEach((st,idx)=>{
           const sub=document.createElementNS('http://www.w3.org/2000/svg','text');
-          sub.setAttribute('x',x+NODE_W/2);
+          sub.setAttribute('x',centerX+NODE_W/2);
           sub.setAttribute('y',y+110+(idx*36));
           sub.setAttribute('class','subtext');
           sub.textContent='• '+st;
@@ -226,10 +223,12 @@
 
         if(i<items.length-1){
           const path=document.createElementNS('http://www.w3.org/2000/svg','path');
-          path.setAttribute('d',`M ${x+NODE_W} ${y+NODE_H/2} L ${x+NODE_W+SPACING} ${y+NODE_H/2}`);
+          path.setAttribute('d',`M ${centerX+NODE_W/2} ${y+NODE_H} L ${centerX+NODE_W/2} ${y+NODE_H+SPACING}`);
           path.setAttribute('class','edge');
           gEdges.appendChild(path);
         }
+
+        y += NODE_H + SPACING;
       });
     }
 
@@ -247,23 +246,23 @@
       currentLevel=id;
       backBtn.style.display='inline-block';
       clear();
-      const NODE_W=700,NODE_H=220,SPACING=200;
+      const NODE_W=800,NODE_H=220,SPACING=150;
+      const centerX=1000-NODE_W/2;
+      let y=200;
       m.substeps.forEach((s,i)=>{
-        const x=1500;
-        const y=100+i*(NODE_H+SPACING);
         const g=document.createElementNS('http://www.w3.org/2000/svg','g');
         g.setAttribute('data-id',s);
+        g.setAttribute('class','node');
 
         const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
-        rect.setAttribute('x',x);
+        rect.setAttribute('x',centerX);
         rect.setAttribute('y',y);
         rect.setAttribute('width',NODE_W);
         rect.setAttribute('height',NODE_H);
-        rect.setAttribute('class','node');
         rect.setAttribute('fill','url(#grad0)');
 
         const label=document.createElementNS('http://www.w3.org/2000/svg','text');
-        label.setAttribute('x',x+NODE_W/2);
+        label.setAttribute('x',centerX+NODE_W/2);
         label.setAttribute('y',y+NODE_H/2);
         label.setAttribute('class','label');
         label.textContent=s;
@@ -274,38 +273,37 @@
 
         if(i<m.substeps.length-1){
           const path=document.createElementNS('http://www.w3.org/2000/svg','path');
-          path.setAttribute('d',`M ${x+NODE_W/2} ${y+NODE_H} L ${x+NODE_W/2} ${y+NODE_H+SPACING}`);
+          path.setAttribute('d',`M ${centerX+NODE_W/2} ${y+NODE_H} L ${centerX+NODE_W/2} ${y+NODE_H+SPACING}`);
           path.setAttribute('class','edge');
           gEdges.appendChild(path);
         }
+        y+=NODE_H+SPACING;
       });
       resetView();
     }
 
     // Hover spotlight
     gNodes.addEventListener('mouseover',e=>{
-      if(currentLevel!=='overview' && currentLevel!=='drilldown') return;
       const g=e.target.closest('g[data-id]');
       if(!g) return;
       gNodes.querySelectorAll('g').forEach(node=>{
         if(node===g){
-          node.querySelector('rect').classList.add('highlight');
-          node.querySelectorAll('text').forEach(t=>t.classList.remove('dimmed-text'));
+          node.classList.add('highlight');
+          node.classList.remove('dimmed');
         } else {
-          node.querySelector('rect').classList.add('dimmed');
-          node.querySelectorAll('text').forEach(t=>t.classList.add('dimmed-text'));
+          node.classList.add('dimmed');
+          node.classList.remove('highlight');
         }
       });
       gEdges.querySelectorAll('path').forEach(edge=>edge.classList.add('dimmed-edge'));
     });
 
     gNodes.addEventListener('mouseout',()=>{
-      gNodes.querySelectorAll('rect').forEach(r=>r.classList.remove('dimmed','highlight'));
-      gNodes.querySelectorAll('text').forEach(t=>t.classList.remove('dimmed-text'));
+      gNodes.querySelectorAll('g').forEach(node=>node.classList.remove('dimmed','highlight'));
       gEdges.querySelectorAll('path').forEach(e=>e.classList.remove('dimmed-edge'));
     });
 
-    // Click to drilldown
+    // Click
     gNodes.addEventListener('click',e=>{
       const g=e.target.closest('g[data-id]');
       if(!g) return;
@@ -315,21 +313,37 @@
 
     backBtn.addEventListener('click',showOverview);
 
-    // Pan & zoom
-    let view={x:0,y:0,w:4000,h:1600};
+    // Pan & zoom with separate input handling
+    let view={x:0,y:0,w:2000,h:4000};
     function applyView(){svg.setAttribute('viewBox',`${view.x} ${view.y} ${view.w} ${view.h}`)}
-    function resetView(){view={x:0,y:0,w:4000,h:1600};applyView();}
+    function resetView(){view={x:0,y:0,w:2000,h:4000};applyView();}
     applyView();
+
     const canvasEl=document.getElementById('canvas');
-    let isPanning=false,start={x:0,y:0},startView={...view};
+    let isPanning=false,start={x:0,y:0},startView={...view},panMode=null;
+
     canvasEl.addEventListener('pointerdown',e=>{
-      isPanning=true;
-      canvasEl.setPointerCapture(e.pointerId);
-      start={x:e.clientX,y:e.clientY};
-      startView={...view};
+      // mouse right/middle -> pan
+      if(e.pointerType==='mouse' && (e.button===1 || e.button===2)){
+        panMode='mouse';
+        isPanning=true;
+        start={x:e.clientX,y:e.clientY};
+        startView={...view};
+        canvasEl.setPointerCapture(e.pointerId);
+      }
+      // touch with 2 fingers -> pan
+      if(e.pointerType==='touch'){
+        if(e.isPrimary) return;
+        panMode='touch';
+        isPanning=true;
+        start={x:e.clientX,y:e.clientY};
+        startView={...view};
+        canvasEl.setPointerCapture(e.pointerId);
+      }
     });
+
     canvasEl.addEventListener('pointermove',e=>{
-      if(!isPanning)return;
+      if(!isPanning) return;
       const rect=svg.getBoundingClientRect();
       const dx=(e.clientX-start.x)*(view.w/rect.width);
       const dy=(e.clientY-start.y)*(view.h/rect.height);
@@ -337,8 +351,10 @@
       view.y=startView.y-dy;
       applyView();
     });
-    canvasEl.addEventListener('pointerup',()=>{isPanning=false});
-    canvasEl.addEventListener('pointercancel',()=>{isPanning=false});
+
+    canvasEl.addEventListener('pointerup',()=>{isPanning=false;panMode=null;});
+    canvasEl.addEventListener('pointercancel',()=>{isPanning=false;panMode=null;});
+
     canvasEl.addEventListener('wheel',e=>{
       e.preventDefault();
       const scale=(e.deltaY<0)?0.9:1.1;
