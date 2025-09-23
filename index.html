@@ -5,66 +5,135 @@
   <title>Wise Productions Intranet</title>
   <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --midnight-navy: #1B1F3B;
+      --heritage-rose: #B76E79;
+      --paper-white: #FAF9F7; /* or near white */
+      --black: #000000;
+      --white: #FFFFFF;
+    }
+
+    * {
+      box-sizing: border-box;
+      padding: 0;
+      margin: 0;
+    }
     body {
       font-family: 'Lato', sans-serif;
-      margin: 0;
-      background-color: #F5F5F5; /* paper white */
-      color: #000; /* black text */
+      background-color: var(--paper-white);
+      color: var(--black);
+      line-height: 1.6;
     }
     header {
-      background-color: #1B1F3B; /* midnight navy */
-      color: white;
+      background-color: var(--midnight-navy);
+      color: var(--white);
       padding: 1rem 2rem;
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
     header h1 {
-      margin: 0;
+      font-weight: 700;
+      font-size: 1.8rem;
+    }
+    nav {
+      display: flex;
+      gap: 1.5rem;
     }
     nav a {
-      color: white;
-      margin: 0 1rem;
+      color: var(--white);
       text-decoration: none;
-      font-weight: 500;
+      font-weight: 400;
+      transition: color 0.3s;
+    }
+    nav a:hover {
+      color: var(--heritage-rose);
     }
     .container {
-      padding: 2rem;
+      max-width: 1000px;
+      margin: 2rem auto;
+      padding: 0 1rem;
     }
-    .links, .policies, .news {
-      margin-bottom: 2rem;
+    section {
+      margin-bottom: 3rem;
+    }
+    .section-header {
+      border-bottom: 2px solid var(--midnight-navy);
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+    }
+    .section-header h2 {
+      color: var(--heritage-rose);
+      font-size: 1.6rem;
+      font-weight: 700;
+    }
+    .cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
     }
     .card {
-      display: inline-block;
-      background: white;
+      flex: 1 1 200px;
+      background: var(--white);
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
       padding: 1rem;
-      margin: 0.5rem;
-      min-width: 150px;
       text-align: center;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
     .card a {
-      text-decoration: none;
-      color: #1B1F3B;
+      color: var(--midnight-navy);
       font-weight: 600;
+      text-decoration: none;
     }
-    h2 {
-      color: #B76E79; /* heritage rose */
-      border-bottom: 2px solid #1B1F3B;
-      padding-bottom: 0.3rem;
+    .news-list {
+      list-style-type: none;
+    }
+    .news-list li {
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #ddd;
+      transition: background 0.2s;
+    }
+    .news-list li:hover {
+      background: #f0f0f0;
+    }
+    .news-list li strong {
+      color: var(--midnight-navy);
     }
     footer {
-      background: #000;
-      color: white;
+      background: var(--midnight-navy);
+      color: var(--white);
       text-align: center;
-      padding: 1rem;
+      padding: 1.5rem 0;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 600px) {
+      .cards {
+        flex-direction: column;
+      }
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      nav {
+        margin-top: 1rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>Wise Productions</h1>
+    <h1>Wise Productions Intranet</h1>
     <nav>
       <a href="#">Home</a>
       <a href="#">Policies</a>
@@ -76,16 +145,18 @@
 
   <div class="container">
     <section class="links">
-      <h2>Quick Links</h2>
-      <div class="card"><a href="https://outlook.office.com">Outlook</a></div>
-      <div class="card"><a href="https://teams.microsoft.com">Teams</a></div>
-      <div class="card"><a href="#">Opsync</a></div>
-      <div class="card"><a href="#">Timesheets</a></div>
+      <div class="section-header"><h2>Quick Links</h2></div>
+      <div class="cards">
+        <div class="card"><a href="https://outlook.office.com">Outlook</a></div>
+        <div class="card"><a href="https://teams.microsoft.com">Teams</a></div>
+        <div class="card"><a href="#">Opsync</a></div>
+        <div class="card"><a href="#">Timesheets</a></div>
+      </div>
     </section>
 
     <section class="news">
-      <h2>Company News</h2>
-      <ul>
+      <div class="section-header"><h2>Company News</h2></div>
+      <ul class="news-list">
         <li><strong>July 2025:</strong> Crew structure announcement</li>
         <li><strong>June 2025:</strong> New design app live</li>
         <li><strong>May 2025:</strong> Freelancer handbook updated</li>
@@ -93,7 +164,7 @@
     </section>
 
     <section class="policies">
-      <h2>Policies & Processes</h2>
+      <div class="section-header"><h2>Policies & Processes</h2></div>
       <ul>
         <li><a href="#">Health & Safety Policy</a></li>
         <li><a href="#">Freelancer Handbook</a></li>
