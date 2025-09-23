@@ -1,180 +1,318 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Wise Productions Intranet</title>
-  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wise Productions — Critical Client Flow (Interactive)</title>
   <style>
-    :root {
-      --midnight-navy: #1B1F3B;
-      --heritage-rose: #B76E79;
-      --paper-white: #FAF9F7; /* or near white */
-      --black: #000000;
-      --white: #FFFFFF;
+    :root{
+      --bg: #0b0f14;
+      --panel:#0f1720;
+      --ink:#e5ecf4;
+      --muted:#9fb3c8;
+      --accent:#5eead4; /* teal */
+      --accent-2:#60a5fa; /* blue */
+      --node:#12202e;
+      --node-border:#22455f;
+      --edge:#284f6b;
+      --shadow: 0 10px 30px rgba(2,12,27,.35);
     }
+    @media (prefers-color-scheme: light){
+      :root{
+        --bg:#f6fbff; --panel:#ffffff; --ink:#0b1220; --muted:#4b5563; --node:#eef7ff; --node-border:#cfe8ff; --edge:#c7e2ff;
+      }
+    }
+    html,body{height:100%;}
+    body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,'Noto Sans','Apple Color Emoji','Segoe UI Emoji';}
+    header{position:sticky;top:0;z-index:4;background:linear-gradient(180deg,rgba(11,15,20,.95),rgba(11,15,20,.75) 60%,rgba(11,15,20,0));backdrop-filter:saturate(140%) blur(6px);}
+    .bar{display:flex;align-items:center;gap:.75rem;padding:.8rem 1rem;}
+    .title{font-weight:700;letter-spacing:.3px}
+    .grow{flex:1}
+    .btn{appearance:none;border:1px solid var(--node-border);background:var(--panel);color:var(--ink);padding:.55rem .8rem;border-radius:999px;cursor:pointer;box-shadow:var(--shadow);}
+    .btn:active{transform:translateY(1px)}
+    .wrap{display:grid;grid-template-columns: 1fr minmax(260px, 360px);gap:1rem;padding:1rem;}
+    .panel{background:var(--panel);border:1px solid var(--node-border);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+    #stageDetails{padding:1rem}
+    h2{margin:.2rem 0 .6rem;font-size:1.1rem}
+    .muted{color:var(--muted);font-size:.92rem}
+    .list{margin:.5rem 0 0 1.1rem}
+    .legend{display:flex;gap:1rem;flex-wrap:wrap;margin-top:.5rem}
+    .legend span{display:inline-flex;align-items:center;gap:.4rem}
+    .dot{width:10px;height:10px;border-radius:50%;background:var(--accent)}
 
-    * {
-      box-sizing: border-box;
-      padding: 0;
-      margin: 0;
-    }
-    body {
-      font-family: 'Lato', sans-serif;
-      background-color: var(--paper-white);
-      color: var(--black);
-      line-height: 1.6;
-    }
-    header {
-      background-color: var(--midnight-navy);
-      color: var(--white);
-      padding: 1rem 2rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    header h1 {
-      font-weight: 700;
-      font-size: 1.8rem;
-    }
-    nav {
-      display: flex;
-      gap: 1.5rem;
-    }
-    nav a {
-      color: var(--white);
-      text-decoration: none;
-      font-weight: 400;
-      transition: color 0.3s;
-    }
-    nav a:hover {
-      color: var(--heritage-rose);
-    }
-    .container {
-      max-width: 1000px;
-      margin: 2rem auto;
-      padding: 0 1rem;
-    }
-    section {
-      margin-bottom: 3rem;
-    }
-    .section-header {
-      border-bottom: 2px solid var(--midnight-navy);
-      margin-bottom: 1rem;
-      padding-bottom: 0.5rem;
-    }
-    .section-header h2 {
-      color: var(--heritage-rose);
-      font-size: 1.6rem;
-      font-weight: 700;
-    }
-    .cards {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-    .card {
-      flex: 1 1 200px;
-      background: var(--white);
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      padding: 1rem;
-      text-align: center;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    .card a {
-      color: var(--midnight-navy);
-      font-weight: 600;
-      text-decoration: none;
-    }
-    .news-list {
-      list-style-type: none;
-    }
-    .news-list li {
-      padding: 0.5rem 0;
-      border-bottom: 1px solid #ddd;
-      transition: background 0.2s;
-    }
-    .news-list li:hover {
-      background: #f0f0f0;
-    }
-    .news-list li strong {
-      color: var(--midnight-navy);
-    }
-    footer {
-      background: var(--midnight-navy);
-      color: var(--white);
-      text-align: center;
-      padding: 1.5rem 0;
-      font-size: 0.9rem;
-    }
+    /* Canvas area */
+    .canvas{position:relative;height:72vh;min-height:420px}
+    svg{width:100%;height:100%;display:block;background:radial-gradient(1200px 600px at 20% -10%, rgba(94,234,212,.16), transparent 50%), radial-gradient(1200px 600px at 120% 110%, rgba(96,165,250,.16), transparent 50%);}
+    .node{fill:var(--node);stroke:var(--node-border);stroke-width:1.25;rx:14;ry:14;}
+    .node:hover{filter:brightness(1.08)}
+    .edge{stroke:var(--edge);stroke-width:2.5;fill:none;marker-end:url(#arrow)}
+    .label{font-size:14px;fill:var(--ink);font-weight:600;}
+    .sublabel{font-size:12px;fill:var(--muted)}
+    .badge{fill:var(--accent);}
 
-    @media (max-width: 600px) {
-      .cards {
-        flex-direction: column;
-      }
-      header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      nav {
-        margin-top: 1rem;
-        flex-wrap: wrap;
-        gap: 1rem;
-      }
-    }
+    .tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--node-border);padding:.5rem .6rem;border-radius:10px;font-size:.9rem;box-shadow:var(--shadow);opacity:0;transform:translate(-50%,-125%) scale(.98);transition:opacity .15s ease, transform .15s ease;}
+    .tip.show{opacity:1;transform:translate(-50%,-125%) scale(1)}
+
+    footer{padding:1rem;color:var(--muted);text-align:center}
+    a{color:var(--accent-2);text-decoration:none}
+    a:hover{text-decoration:underline}
   </style>
 </head>
 <body>
   <header>
-    <h1>Wise Productions Intranet</h1>
-    <nav>
-      <a href="#">Home</a>
-      <a href="#">Policies</a>
-      <a href="#">Processes</a>
-      <a href="#">Tools</a>
-      <a href="#">News</a>
-    </nav>
+    <div class="bar">
+      <div class="title">Wise Productions — Critical Client Flow (CCF)</div>
+      <div class="grow"></div>
+      <button class="btn" id="fit">Fit to screen</button>
+      <button class="btn" id="reset">Reset view</button>
+    </div>
   </header>
 
-  <div class="container">
-    <section class="links">
-      <div class="section-header"><h2>Quick Links</h2></div>
-      <div class="cards">
-        <div class="card"><a href="https://outlook.office.com">Outlook</a></div>
-        <div class="card"><a href="https://teams.microsoft.com">Teams</a></div>
-        <div class="card"><a href="#">Opsync</a></div>
-        <div class="card"><a href="#">Timesheets</a></div>
+  <main class="wrap">
+    <section class="panel">
+      <div class="canvas" id="canvas">
+        <svg id="svg" viewBox="0 0 1400 420" role="img" aria-label="Critical Client Flow overview diagram">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--edge)"></path>
+            </marker>
+          </defs>
+          <!-- edges layer -->
+          <g id="edges"></g>
+          <!-- nodes layer -->
+          <g id="nodes"></g>
+        </svg>
+        <div class="tip" id="tip"></div>
       </div>
     </section>
 
-    <section class="news">
-      <div class="section-header"><h2>Company News</h2></div>
-      <ul class="news-list">
-        <li><strong>July 2025:</strong> Crew structure announcement</li>
-        <li><strong>June 2025:</strong> New design app live</li>
-        <li><strong>May 2025:</strong> Freelancer handbook updated</li>
-      </ul>
-    </section>
-
-    <section class="policies">
-      <div class="section-header"><h2>Policies & Processes</h2></div>
-      <ul>
-        <li><a href="#">Health & Safety Policy</a></li>
-        <li><a href="#">Freelancer Handbook</a></li>
-        <li><a href="#">Expenses Process</a></li>
-      </ul>
-    </section>
-  </div>
+    <aside class="panel" id="stageDetails">
+      <h2 id="detailTitle">Fully zoomed‑out overview</h2>
+      <p class="muted">Click a milestone to see a summary. Drag to pan. Pinch/scroll to zoom. Use the buttons above to fit or reset the view.</p>
+      <div class="legend">
+        <span><span class="dot" style="background:var(--accent)"></span> Milestone</span>
+        <span><span class="dot" style="background:var(--accent-2)"></span> Flow direction</span>
+      </div>
+      <ul class="list" id="bulletList"></ul>
+    </aside>
+  </main>
 
   <footer>
-    © Wise Productions 2025 | Internal Use Only
+    <small>End of CCF is defined as: <b>Final invoice paid & all feedback received</b>.</small>
   </footer>
+
+  <script>
+    // ---- Data ----
+    const stages = [
+      {
+        id: 'enquiry',
+        title: 'Enquiry received & logged',
+        notes: [
+          'Capture via web, email or phone',
+          'Log in CRM/Opsync with date + source',
+          'Auto-acknowledge receipt'
+        ]
+      },
+      {
+        id: 'qualify',
+        title: 'Qualification',
+        notes: [
+          'Clarify scope, budget, dates, venue',
+          'Tiering (T1/T2/T3) & go/no‑go',
+          'Assign provisional owner'
+        ]
+      },
+      {
+        id: 'proposal',
+        title: 'Proposal / Quote sent',
+        notes: [
+          'Estimate crew, kit, logistics',
+          'Price build + GP check',
+          'Proposal issued with expiry'
+        ]
+      },
+      {
+        id: 'approval',
+        title: 'Approval & Deposit',
+        notes: [
+          'Contract + T&Cs issued',
+          'PO or e‑signature captured',
+          'Deposit/payment confirmed'
+        ]
+      },
+      {
+        id: 'planning',
+        title: 'Pre‑production & Planning',
+        notes: [
+          'Assign PM & create plan',
+          'Design sign‑off & HOD review',
+          'Crew, logistics, kit prep scheduled'
+        ]
+      },
+      {
+        id: 'delivery',
+        title: 'Event Delivery',
+        notes: [
+          'Warehouse prep & QA checks',
+          'Load‑in → show → load‑out',
+          'On‑site sign‑offs captured'
+        ]
+      },
+      {
+        id: 'wrap',
+        title: 'Post‑event wrap → END',
+        notes: [
+          'Crew & client feedback captured',
+          'Final invoice issued and <b>paid</b>',
+          'Retrospective with outcomes stored'
+        ]
+      }
+    ];
+
+    // Basic layout constants (horizontal flow)
+    const NODE_W = 260, NODE_H = 90, SPACING_X = 120, SPACING_Y = 40;
+
+    // Compute positions in a single row; wrap if window is small later if needed
+    const positions = stages.map((s, i) => ({ id: s.id, x: 60 + i * (NODE_W + SPACING_X), y: 165 }));
+
+    const svg = document.getElementById('svg');
+    const gNodes = document.getElementById('nodes');
+    const gEdges = document.getElementById('edges');
+    const tip = document.getElementById('tip');
+    const list = document.getElementById('bulletList');
+    const detailTitle = document.getElementById('detailTitle');
+
+    // Draw edges
+    for(let i=0;i<positions.length-1;i++){
+      const a = positions[i], b = positions[i+1];
+      const y = a.y + NODE_H/2;
+      const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+      const x1 = a.x + NODE_W, x2 = b.x;
+      const mx = (x1 + x2)/2; // smooth curve
+      path.setAttribute('d', `M ${x1} ${y} C ${mx} ${y} ${mx} ${y} ${x2} ${y}`);
+      path.setAttribute('class','edge');
+      gEdges.appendChild(path);
+    }
+
+    // Draw nodes
+    stages.forEach((s, i) => {
+      const pos = positions[i];
+      const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+      g.setAttribute('data-id', s.id);
+      g.setAttribute('tabindex','0');
+      g.setAttribute('role','button');
+      g.setAttribute('aria-label', s.title);
+
+      const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      rect.setAttribute('x', pos.x);
+      rect.setAttribute('y', pos.y);
+      rect.setAttribute('width', NODE_W);
+      rect.setAttribute('height', NODE_H);
+      rect.setAttribute('class','node');
+
+      const badge = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      badge.setAttribute('cx', pos.x + 16);
+      badge.setAttribute('cy', pos.y + 16);
+      badge.setAttribute('r', 4.5);
+      badge.setAttribute('class','badge');
+
+      const label = document.createElementNS('http://www.w3.org/2000/svg','text');
+      label.setAttribute('x', pos.x + 20);
+      label.setAttribute('y', pos.y + 36);
+      label.setAttribute('class','label');
+      label.textContent = s.title;
+
+      const sublabel = document.createElementNS('http://www.w3.org/2000/svg','text');
+      sublabel.setAttribute('x', pos.x + 20);
+      sublabel.setAttribute('y', pos.y + 58);
+      sublabel.setAttribute('class','sublabel');
+      sublabel.textContent = 'Click for details';
+
+      g.appendChild(rect); g.appendChild(badge); g.appendChild(label); g.appendChild(sublabel);
+      gNodes.appendChild(g);
+    });
+
+    // Tooltip & sidebar logic
+    function setDetails(id){
+      const s = stages.find(x => x.id === id);
+      if(!s) return;
+      detailTitle.textContent = s.title;
+      list.innerHTML = s.notes.map(n => `<li>${n}</li>`).join('');
+    }
+
+    function showTip(x, y, text){
+      tip.innerHTML = text;
+      tip.style.left = x + 'px';
+      tip.style.top = y + 'px';
+      tip.classList.add('show');
+    }
+    function hideTip(){ tip.classList.remove('show'); }
+
+    gNodes.addEventListener('pointerover', e => {
+      const g = e.target.closest('g[data-id]');
+      if(!g) return; const rect = svg.getBoundingClientRect();
+      const id = g.getAttribute('data-id');
+      const s = stages.find(x => x.id===id);
+      showTip(e.clientX - rect.left, e.clientY - rect.top, s.title);
+    });
+    gNodes.addEventListener('pointerout', hideTip);
+
+    gNodes.addEventListener('click', e => {
+      const g = e.target.closest('g[data-id]');
+      if(!g) return; setDetails(g.getAttribute('data-id'));
+    });
+
+    // ---- Pan & Zoom (no external libs) ----
+    // We manipulate the SVG viewBox to pan/zoom
+    let view = { x:0, y:0, w:1400, h:420 };
+    function applyView(){ svg.setAttribute('viewBox', `${view.x} ${view.y} ${view.w} ${view.h}`); }
+    applyView();
+
+    const canvasEl = document.getElementById('canvas');
+    let isPanning = false, start = {x:0, y:0}, startView = {...view};
+
+    canvasEl.addEventListener('pointerdown', (e)=>{
+      isPanning = true; canvasEl.setPointerCapture(e.pointerId);
+      start = { x: e.clientX, y: e.clientY }; startView = {...view};
+    });
+    canvasEl.addEventListener('pointermove', (e)=>{
+      if(!isPanning) return;
+      const rect = svg.getBoundingClientRect();
+      const dx = (e.clientX - start.x) * (view.w / rect.width);
+      const dy = (e.clientY - start.y) * (view.h / rect.height);
+      view.x = startView.x - dx; view.y = startView.y - dy; applyView();
+    });
+    canvasEl.addEventListener('pointerup', ()=>{ isPanning = false; });
+    canvasEl.addEventListener('pointercancel', ()=>{ isPanning = false; });
+
+    canvasEl.addEventListener('wheel', (e)=>{
+      e.preventDefault();
+      const scale = (e.deltaY < 0) ? 0.9 : 1.1; // zoom in/out
+      const rect = svg.getBoundingClientRect();
+      const mx = (e.clientX - rect.left) / rect.width;  // 0..1
+      const my = (e.clientY - rect.top) / rect.height; // 0..1
+      const vx = view.x + view.w * mx;
+      const vy = view.y + view.h * my;
+      view.w *= scale; view.h *= scale;
+      view.x = vx - view.w * mx; view.y = vy - view.h * my;
+      applyView();
+    }, { passive:false });
+
+    // Controls
+    document.getElementById('reset').addEventListener('click', ()=>{ view = {x:0,y:0,w:1400,h:420}; applyView(); detailTitle.textContent='Fully zoomed‑out overview'; list.innerHTML=''; });
+
+    document.getElementById('fit').addEventListener('click', ()=>{
+      // Fit the outer bounds of nodes nicely into the viewport
+      const minX = positions[0].x - 40;
+      const minY = positions[0].y - 40;
+      const maxX = positions[positions.length-1].x + NODE_W + 40;
+      const maxY = positions[0].y + NODE_H + 40;
+      view = { x:minX, y:minY, w:(maxX-minX), h:(maxY-minY) };
+      applyView();
+    });
+
+    // Autofit on load for overview
+    document.getElementById('fit').click();
+  </script>
 </body>
 </html>
