@@ -3,88 +3,130 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Wise Productions — CCF Drill-down</title>
+  <title>Wise Productions — Critical Client Flow</title>
   <style>
-    body{margin:0;background:#0b0f14;color:#e5ecf4;font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,'Noto Sans';}
+    body{margin:0;background:#0b0f14;color:#fff;font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,'Noto Sans';}
     header{background:#111827;padding:.8rem 1rem;display:flex;align-items:center;gap:1rem;}
-    .title{font-weight:700}
-    .btn{appearance:none;border:1px solid #374151;background:#1f2937;color:#e5ecf4;padding:.45rem .8rem;border-radius:8px;cursor:pointer;}
-    .wrap{display:grid;grid-template-columns:1fr 300px;gap:1rem;padding:1rem;}
-    .panel{background:#111827;border:1px solid #374151;border-radius:12px;overflow:hidden}
-    #stageDetails{padding:1rem}
-    h2{margin:.2rem 0 .6rem;font-size:1.2rem}
-    .list{margin:.5rem 0 0 1.1rem}
-    .canvas{position:relative;height:72vh;min-height:420px}
+    .title{font-weight:700;font-size:1.4rem}
+    .btn{appearance:none;border:none;background:#2563eb;color:#fff;padding:.55rem 1rem;border-radius:6px;cursor:pointer;display:none;}
+    .canvas{position:relative;height:85vh;}
     svg{width:100%;height:100%;display:block;}
-    .node{fill:url(#gradNode);stroke:#2563eb;stroke-width:2;rx:14;ry:14;cursor:pointer;filter:drop-shadow(0 4px 6px rgba(0,0,0,.5));}
-    .label{font-size:16px;fill:#ffffff;font-weight:700;pointer-events:none;}
-    .edge{stroke:#64748b;stroke-width:2.5;fill:none;marker-end:url(#arrow)}
+    .node{stroke:#0f172a;stroke-width:3;rx:32;ry:32;cursor:pointer;filter:drop-shadow(0 8px 14px rgba(0,0,0,.6));}
+    .label{font-size:48px;fill:#ffffff;font-weight:800;pointer-events:none;text-anchor:middle;dominant-baseline:middle;}
+    .label tspan{display:block;}
+    .edge{stroke:#94a3b8;stroke-width:6;fill:none;marker-end:url(#arrow)}
   </style>
 </head>
 <body>
   <header>
-    <div class="title">Wise Productions — CCF Drill-down</div>
-    <button class="btn" id="back" style="display:none">← Back</button>
+    <div class="title">Wise Productions — Critical Client Flow</div>
+    <button class="btn" id="back">← Back</button>
   </header>
 
-  <main class="wrap">
-    <section class="panel">
-      <div class="canvas" id="canvas">
-        <svg id="svg" viewBox="0 0 1600 800">
-          <defs>
-            <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-              <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"></path>
-            </marker>
-            <linearGradient id="gradNode" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#2563eb"/>
-              <stop offset="100%" stop-color="#0891b2"/>
-            </linearGradient>
-          </defs>
-          <g id="edges"></g>
-          <g id="nodes"></g>
-        </svg>
-      </div>
-    </section>
-    <aside class="panel" id="stageDetails">
-      <h2 id="detailTitle">Overview</h2>
-      <ul class="list" id="bulletList"></ul>
-    </aside>
-  </main>
+  <div class="canvas" id="canvas">
+    <svg id="svg" viewBox="0 0 4000 1600">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="14" markerHeight="14" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"></path>
+        </marker>
+        <linearGradient id="grad0" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#2563eb"/>
+          <stop offset="100%" stop-color="#1e40af"/>
+        </linearGradient>
+        <linearGradient id="grad1" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#0891b2"/>
+          <stop offset="100%" stop-color="#155e75"/>
+        </linearGradient>
+        <linearGradient id="grad2" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#10b981"/>
+          <stop offset="100%" stop-color="#065f46"/>
+        </linearGradient>
+        <linearGradient id="grad3" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#f59e0b"/>
+          <stop offset="100%" stop-color="#92400e"/>
+        </linearGradient>
+        <linearGradient id="grad4" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#ec4899"/>
+          <stop offset="100%" stop-color="#9d174d"/>
+        </linearGradient>
+        <linearGradient id="grad5" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#8b5cf6"/>
+          <stop offset="100%" stop-color="#4c1d95"/>
+        </linearGradient>
+        <linearGradient id="grad6" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#ef4444"/>
+          <stop offset="100%" stop-color="#7f1d1d"/>
+        </linearGradient>
+      </defs>
+      <g id="edges"></g>
+      <g id="nodes"></g>
+    </svg>
+  </div>
 
   <script>
-    const milestones = [
-      { id:'enquiry', title:'Enquiry received & logged' },
-      { id:'qualify', title:'Qualification' },
-      { id:'proposal', title:'Proposal / Quote sent' },
-      { id:'approval', title:'Approval & Deposit' },
+    const milestones=[
+      { id:'enquiry', title:'Enquiry received & logged', substeps:[
+        {id:'enq1', title:'Capture via web, email or phone'},
+        {id:'enq2', title:'Log in CRM/Opsync'},
+        {id:'enq3', title:'Auto-acknowledge receipt'}
+      ]},
+      { id:'qualify', title:'Qualification', substeps:[
+        {id:'q1', title:'Clarify scope, budget, dates, venue'},
+        {id:'q2', title:'Tiering (T1/T2/T3)'},
+        {id:'q3', title:'Assign provisional owner'}
+      ]},
+      { id:'proposal', title:'Proposal / Quote sent', substeps:[
+        {id:'p1', title:'Estimate crew, kit, logistics'},
+        {id:'p2', title:'Price build + GP check'},
+        {id:'p3', title:'Proposal issued with expiry'}
+      ]},
+      { id:'approval', title:'Approval & Deposit', substeps:[
+        {id:'a1', title:'Contract + T&Cs issued'},
+        {id:'a2', title:'PO or e-signature captured'},
+        {id:'a3', title:'Deposit/payment confirmed'}
+      ]},
       { id:'planning', title:'Pre-production & Planning', substeps:[
         { id:'assignPM', title:'Assign PM & create plan' },
         { id:'designSignoff', title:'Design sign-off & HOD review' },
         { id:'crewLogistics', title:'Crew, logistics, kit prep scheduled' }
-      ] },
-      { id:'delivery', title:'Event Delivery' },
-      { id:'wrap', title:'Post-event wrap → END' }
+      ]},
+      { id:'delivery', title:'Event Delivery', substeps:[
+        {id:'d1', title:'Warehouse prep & QA checks'},
+        {id:'d2', title:'Load-in → show → load-out'},
+        {id:'d3', title:'On-site sign-offs captured'}
+      ]},
+      { id:'wrap', title:'Post-event wrap → END', substeps:[
+        {id:'w1', title:'Crew & client feedback captured'},
+        {id:'w2', title:'Final invoice issued and paid'},
+        {id:'w3', title:'Retrospective stored'}
+      ]}
     ];
 
     const svg=document.getElementById('svg');
     const gNodes=document.getElementById('nodes');
     const gEdges=document.getElementById('edges');
-    const detailTitle=document.getElementById('detailTitle');
-    const list=document.getElementById('bulletList');
     const backBtn=document.getElementById('back');
 
-    let view={x:0,y:0,w:1600,h:800};
-    function applyView(){svg.setAttribute('viewBox',`${view.x} ${view.y} ${view.w} ${view.h}`)}
-    applyView();
+    function wrapText(text, maxChars){
+      const words=text.split(' ');
+      let line='';
+      const lines=[];
+      words.forEach(w=>{
+        if((line+w).length>maxChars){lines.push(line.trim());line=w+' ';}
+        else line+=w+' ';
+      });
+      lines.push(line.trim());
+      return lines;
+    }
 
-    function clear(){ gNodes.innerHTML=''; gEdges.innerHTML=''; }
+    function clear(){gNodes.innerHTML='';gEdges.innerHTML='';}
 
-    function drawFlow(items, vertical=false){
+    function drawFlow(items,vertical=false){
       clear();
-      const NODE_W=260, NODE_H=90, SPACING=120;
+      const NODE_W=700,NODE_H=300,SPACING=300;
       items.forEach((s,i)=>{
-        const x=vertical?600:60+i*(NODE_W+SPACING);
-        const y=vertical?60+i*(NODE_H+SPACING):250;
+        const x=100+i*(NODE_W+SPACING);
+        const y=500;
         const g=document.createElementNS('http://www.w3.org/2000/svg','g');
         g.setAttribute('data-id',s.id);
         const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
@@ -93,20 +135,27 @@
         rect.setAttribute('width',NODE_W);
         rect.setAttribute('height',NODE_H);
         rect.setAttribute('class','node');
+        rect.setAttribute('fill',`url(#grad${i%7})`);
+
         const label=document.createElementNS('http://www.w3.org/2000/svg','text');
-        label.setAttribute('x',x+20);
-        label.setAttribute('y',y+NODE_H/2+6);
+        label.setAttribute('x',x+NODE_W/2);
+        label.setAttribute('y',y+NODE_H/2-40);
         label.setAttribute('class','label');
-        label.textContent=s.title;
-        g.appendChild(rect); g.appendChild(label);
+
+        const lines=wrapText(s.title,20);
+        lines.forEach((line,idx)=>{
+          const tspan=document.createElementNS('http://www.w3.org/2000/svg','tspan');
+          tspan.setAttribute('x',x+NODE_W/2);
+          tspan.setAttribute('dy',idx===0?0:56);
+          tspan.textContent=line;
+          label.appendChild(tspan);
+        });
+
+        g.appendChild(rect);g.appendChild(label);
         gNodes.appendChild(g);
         if(i<items.length-1){
           const path=document.createElementNS('http://www.w3.org/2000/svg','path');
-          if(vertical){
-            path.setAttribute('d',`M ${x+NODE_W/2} ${y+NODE_H} L ${x+NODE_W/2} ${y+NODE_H+SPACING}`);
-          }else{
-            path.setAttribute('d',`M ${x+NODE_W} ${y+NODE_H/2} L ${x+NODE_W+SPACING} ${y+NODE_H/2}`);
-          }
+          path.setAttribute('d',`M ${x+NODE_W} ${y+NODE_H/2} L ${x+NODE_W+SPACING} ${y+NODE_H/2}`);
           path.setAttribute('class','edge');
           gEdges.appendChild(path);
         }
@@ -117,8 +166,6 @@
     function showOverview(){
       currentLevel='overview';
       backBtn.style.display='none';
-      detailTitle.textContent='Overview';
-      list.innerHTML='<li>Click a milestone to drill into its steps</li>';
       drawFlow(milestones,false);
     }
     function showSubsteps(id){
@@ -126,12 +173,47 @@
       if(!m||!m.substeps) return;
       currentLevel=id;
       backBtn.style.display='inline-block';
-      detailTitle.textContent=m.title;
-      list.innerHTML=m.substeps.map(s=>`<li>${s.title}</li>`).join('');
-      drawFlow(m.substeps,true);
+      clear();
+      const NODE_W=700,NODE_H=220,SPACING=200;
+      m.substeps.forEach((s,i)=>{
+        const x=1500;
+        const y=100+i*(NODE_H+SPACING);
+        const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+        g.setAttribute('data-id',s.id);
+        const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
+        rect.setAttribute('x',x);
+        rect.setAttribute('y',y);
+        rect.setAttribute('width',NODE_W);
+        rect.setAttribute('height',NODE_H);
+        rect.setAttribute('class','node');
+        rect.setAttribute('fill','url(#grad0)');
+
+        const label=document.createElementNS('http://www.w3.org/2000/svg','text');
+        label.setAttribute('x',x+NODE_W/2);
+        label.setAttribute('y',y+NODE_H/2-20);
+        label.setAttribute('class','label');
+
+        const lines=wrapText(s.title,22);
+        lines.forEach((line,idx)=>{
+          const tspan=document.createElementNS('http://www.w3.org/2000/svg','tspan');
+          tspan.setAttribute('x',x+NODE_W/2);
+          tspan.setAttribute('dy',idx===0?0:50);
+          tspan.textContent=line;
+          label.appendChild(tspan);
+        });
+
+        g.appendChild(rect);g.appendChild(label);
+        gNodes.appendChild(g);
+        if(i<m.substeps.length-1){
+          const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+          path.setAttribute('d',`M ${x+NODE_W/2} ${y+NODE_H} L ${x+NODE_W/2} ${y+NODE_H+SPACING}`);
+          path.setAttribute('class','edge');
+          gEdges.appendChild(path);
+        }
+      });
     }
 
-    gNodes.addEventListener('click', e=>{
+    gNodes.addEventListener('click',e=>{
       const g=e.target.closest('g[data-id]');
       if(!g) return;
       const id=g.getAttribute('data-id');
@@ -141,6 +223,9 @@
     backBtn.addEventListener('click',showOverview);
 
     // Pan & zoom
+    let view={x:0,y:0,w:4000,h:1600};
+    function applyView(){svg.setAttribute('viewBox',`${view.x} ${view.y} ${view.w} ${view.h}`)}
+    applyView();
     const canvasEl=document.getElementById('canvas');
     let isPanning=false,start={x:0,y:0},startView={...view};
     canvasEl.addEventListener('pointerdown',e=>{isPanning=true;canvasEl.setPointerCapture(e.pointerId);start={x:e.clientX,y:e.clientY};startView={...view};});
