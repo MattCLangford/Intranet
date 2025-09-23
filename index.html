@@ -5,314 +5,135 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Wise Productions — Critical Client Flow (Interactive)</title>
   <style>
-    :root{
-      --bg: #0b0f14;
-      --panel:#0f1720;
-      --ink:#e5ecf4;
-      --muted:#9fb3c8;
-      --accent:#5eead4; /* teal */
-      --accent-2:#60a5fa; /* blue */
-      --node:#12202e;
-      --node-border:#22455f;
-      --edge:#284f6b;
-      --shadow: 0 10px 30px rgba(2,12,27,.35);
-    }
-    @media (prefers-color-scheme: light){
-      :root{
-        --bg:#f6fbff; --panel:#ffffff; --ink:#0b1220; --muted:#4b5563; --node:#eef7ff; --node-border:#cfe8ff; --edge:#c7e2ff;
-      }
-    }
-    html,body{height:100%;}
-    body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,'Noto Sans','Apple Color Emoji','Segoe UI Emoji';}
-    header{position:sticky;top:0;z-index:4;background:linear-gradient(180deg,rgba(11,15,20,.95),rgba(11,15,20,.75) 60%,rgba(11,15,20,0));backdrop-filter:saturate(140%) blur(6px);}
-    .bar{display:flex;align-items:center;gap:.75rem;padding:.8rem 1rem;}
-    .title{font-weight:700;letter-spacing:.3px}
-    .grow{flex:1}
-    .btn{appearance:none;border:1px solid var(--node-border);background:var(--panel);color:var(--ink);padding:.55rem .8rem;border-radius:999px;cursor:pointer;box-shadow:var(--shadow);}
-    .btn:active{transform:translateY(1px)}
-    .wrap{display:grid;grid-template-columns: 1fr minmax(260px, 360px);gap:1rem;padding:1rem;}
-    .panel{background:var(--panel);border:1px solid var(--node-border);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+    body{margin:0;background:#0b0f14;color:#e5ecf4;font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,'Noto Sans';}
+    header{background:#111827;padding:.8rem 1rem;display:flex;align-items:center;gap:1rem;}
+    .title{font-weight:700}
+    .btn{appearance:none;border:1px solid #374151;background:#1f2937;color:#e5ecf4;padding:.45rem .8rem;border-radius:8px;cursor:pointer;}
+    .wrap{display:grid;grid-template-columns:1fr 300px;gap:1rem;padding:1rem;}
+    .panel{background:#111827;border:1px solid #374151;border-radius:12px;overflow:hidden}
     #stageDetails{padding:1rem}
     h2{margin:.2rem 0 .6rem;font-size:1.1rem}
-    .muted{color:var(--muted);font-size:.92rem}
     .list{margin:.5rem 0 0 1.1rem}
-    .legend{display:flex;gap:1rem;flex-wrap:wrap;margin-top:.5rem}
-    .legend span{display:inline-flex;align-items:center;gap:.4rem}
-    .dot{width:10px;height:10px;border-radius:50%;background:var(--accent)}
-
-    /* Canvas area */
     .canvas{position:relative;height:72vh;min-height:420px}
-    svg{width:100%;height:100%;display:block;background:radial-gradient(1200px 600px at 20% -10%, rgba(94,234,212,.16), transparent 50%), radial-gradient(1200px 600px at 120% 110%, rgba(96,165,250,.16), transparent 50%);}
-    .node{fill:var(--node);stroke:var(--node-border);stroke-width:1.25;rx:14;ry:14;}
-    .node:hover{filter:brightness(1.08)}
-    .edge{stroke:var(--edge);stroke-width:2.5;fill:none;marker-end:url(#arrow)}
-    .label{font-size:14px;fill:var(--ink);font-weight:600;}
-    .sublabel{font-size:12px;fill:var(--muted)}
-    .badge{fill:var(--accent);}
-
-    .tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--node-border);padding:.5rem .6rem;border-radius:10px;font-size:.9rem;box-shadow:var(--shadow);opacity:0;transform:translate(-50%,-125%) scale(.98);transition:opacity .15s ease, transform .15s ease;}
-    .tip.show{opacity:1;transform:translate(-50%,-125%) scale(1)}
-
-    footer{padding:1rem;color:var(--muted);text-align:center}
-    a{color:var(--accent-2);text-decoration:none}
-    a:hover{text-decoration:underline}
+    svg{width:100%;height:100%;display:block;}
+    .node{fill:#1f2937;stroke:#374151;stroke-width:1.25;rx:12;ry:12;cursor:pointer;}
+    .label{font-size:14px;fill:#e5ecf4;font-weight:600;pointer-events:none;}
+    .sublabel{font-size:12px;fill:#9ca3af;pointer-events:none;}
+    .edge{stroke:#374151;stroke-width:2.5;fill:none;marker-end:url(#arrow)}
   </style>
 </head>
 <body>
   <header>
-    <div class="bar">
-      <div class="title">Wise Productions — Critical Client Flow (CCF)</div>
-      <div class="grow"></div>
-      <button class="btn" id="fit">Fit to screen</button>
-      <button class="btn" id="reset">Reset view</button>
-    </div>
+    <div class="title">Wise Productions — CCF Drill‑down</div>
+    <button class="btn" id="back" style="display:none">← Back</button>
   </header>
 
   <main class="wrap">
     <section class="panel">
       <div class="canvas" id="canvas">
-        <svg id="svg" viewBox="0 0 1400 420" role="img" aria-label="Critical Client Flow overview diagram">
+        <svg id="svg" viewBox="0 0 1200 420">
           <defs>
             <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--edge)"></path>
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#374151"></path>
             </marker>
           </defs>
-          <!-- edges layer -->
           <g id="edges"></g>
-          <!-- nodes layer -->
           <g id="nodes"></g>
         </svg>
-        <div class="tip" id="tip"></div>
       </div>
     </section>
-
     <aside class="panel" id="stageDetails">
-      <h2 id="detailTitle">Fully zoomed‑out overview</h2>
-      <p class="muted">Click a milestone to see a summary. Drag to pan. Pinch/scroll to zoom. Use the buttons above to fit or reset the view.</p>
-      <div class="legend">
-        <span><span class="dot" style="background:var(--accent)"></span> Milestone</span>
-        <span><span class="dot" style="background:var(--accent-2)"></span> Flow direction</span>
-      </div>
+      <h2 id="detailTitle">Overview</h2>
       <ul class="list" id="bulletList"></ul>
     </aside>
   </main>
 
-  <footer>
-    <small>End of CCF is defined as: <b>Final invoice paid & all feedback received</b>.</small>
-  </footer>
-
   <script>
     // ---- Data ----
-    const stages = [
-      {
-        id: 'enquiry',
-        title: 'Enquiry received & logged',
-        notes: [
-          'Capture via web, email or phone',
-          'Log in CRM/Opsync with date + source',
-          'Auto-acknowledge receipt'
-        ]
-      },
-      {
-        id: 'qualify',
-        title: 'Qualification',
-        notes: [
-          'Clarify scope, budget, dates, venue',
-          'Tiering (T1/T2/T3) & go/no‑go',
-          'Assign provisional owner'
-        ]
-      },
-      {
-        id: 'proposal',
-        title: 'Proposal / Quote sent',
-        notes: [
-          'Estimate crew, kit, logistics',
-          'Price build + GP check',
-          'Proposal issued with expiry'
-        ]
-      },
-      {
-        id: 'approval',
-        title: 'Approval & Deposit',
-        notes: [
-          'Contract + T&Cs issued',
-          'PO or e‑signature captured',
-          'Deposit/payment confirmed'
-        ]
-      },
-      {
-        id: 'planning',
-        title: 'Pre‑production & Planning',
-        notes: [
-          'Assign PM & create plan',
-          'Design sign‑off & HOD review',
-          'Crew, logistics, kit prep scheduled'
-        ]
-      },
-      {
-        id: 'delivery',
-        title: 'Event Delivery',
-        notes: [
-          'Warehouse prep & QA checks',
-          'Load‑in → show → load‑out',
-          'On‑site sign‑offs captured'
-        ]
-      },
-      {
-        id: 'wrap',
-        title: 'Post‑event wrap → END',
-        notes: [
-          'Crew & client feedback captured',
-          'Final invoice issued and <b>paid</b>',
-          'Retrospective with outcomes stored'
-        ]
-      }
+    const milestones = [
+      { id:'enquiry', title:'Enquiry received & logged' },
+      { id:'qualify', title:'Qualification' },
+      { id:'proposal', title:'Proposal / Quote sent' },
+      { id:'approval', title:'Approval & Deposit' },
+      { id:'planning', title:'Pre‑production & Planning', substeps:[
+        { id:'assignPM', title:'Assign PM & create plan' },
+        { id:'designSignoff', title:'Design sign‑off & HOD review' },
+        { id:'crewLogistics', title:'Crew, logistics, kit prep scheduled' }
+      ] },
+      { id:'delivery', title:'Event Delivery' },
+      { id:'wrap', title:'Post‑event wrap → END' }
     ];
 
-    // Basic layout constants (horizontal flow)
-    const NODE_W = 260, NODE_H = 90, SPACING_X = 120, SPACING_Y = 40;
+    const svg=document.getElementById('svg');
+    const gNodes=document.getElementById('nodes');
+    const gEdges=document.getElementById('edges');
+    const detailTitle=document.getElementById('detailTitle');
+    const list=document.getElementById('bulletList');
+    const backBtn=document.getElementById('back');
 
-    // Compute positions in a single row; wrap if window is small later if needed
-    const positions = stages.map((s, i) => ({ id: s.id, x: 60 + i * (NODE_W + SPACING_X), y: 165 }));
+    function clear(){ gNodes.innerHTML=''; gEdges.innerHTML=''; }
 
-    const svg = document.getElementById('svg');
-    const gNodes = document.getElementById('nodes');
-    const gEdges = document.getElementById('edges');
-    const tip = document.getElementById('tip');
-    const list = document.getElementById('bulletList');
-    const detailTitle = document.getElementById('detailTitle');
-
-    // Draw edges
-    for(let i=0;i<positions.length-1;i++){
-      const a = positions[i], b = positions[i+1];
-      const y = a.y + NODE_H/2;
-      const path = document.createElementNS('http://www.w3.org/2000/svg','path');
-      const x1 = a.x + NODE_W, x2 = b.x;
-      const mx = (x1 + x2)/2; // smooth curve
-      path.setAttribute('d', `M ${x1} ${y} C ${mx} ${y} ${mx} ${y} ${x2} ${y}`);
-      path.setAttribute('class','edge');
-      gEdges.appendChild(path);
+    function drawFlow(items){
+      clear();
+      const NODE_W=220, NODE_H=80, SPACING=100;
+      const y=150;
+      items.forEach((s,i)=>{
+        const x=60+i*(NODE_W+SPACING);
+        // node rect
+        const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+        g.setAttribute('data-id',s.id);
+        const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
+        rect.setAttribute('x',x);
+        rect.setAttribute('y',y);
+        rect.setAttribute('width',NODE_W);
+        rect.setAttribute('height',NODE_H);
+        rect.setAttribute('class','node');
+        const label=document.createElementNS('http://www.w3.org/2000/svg','text');
+        label.setAttribute('x',x+12);
+        label.setAttribute('y',y+40);
+        label.setAttribute('class','label');
+        label.textContent=s.title;
+        g.appendChild(rect); g.appendChild(label);
+        gNodes.appendChild(g);
+        if(i<items.length-1){
+          const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+          path.setAttribute('d',`M ${x+NODE_W} ${y+NODE_H/2} L ${x+NODE_W+SPACING} ${y+NODE_H/2}`);
+          path.setAttribute('class','edge');
+          gEdges.appendChild(path);
+        }
+      });
     }
 
-    // Draw nodes
-    stages.forEach((s, i) => {
-      const pos = positions[i];
-      const g = document.createElementNS('http://www.w3.org/2000/svg','g');
-      g.setAttribute('data-id', s.id);
-      g.setAttribute('tabindex','0');
-      g.setAttribute('role','button');
-      g.setAttribute('aria-label', s.title);
+    let currentLevel='overview';
 
-      const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
-      rect.setAttribute('x', pos.x);
-      rect.setAttribute('y', pos.y);
-      rect.setAttribute('width', NODE_W);
-      rect.setAttribute('height', NODE_H);
-      rect.setAttribute('class','node');
-
-      const badge = document.createElementNS('http://www.w3.org/2000/svg','circle');
-      badge.setAttribute('cx', pos.x + 16);
-      badge.setAttribute('cy', pos.y + 16);
-      badge.setAttribute('r', 4.5);
-      badge.setAttribute('class','badge');
-
-      const label = document.createElementNS('http://www.w3.org/2000/svg','text');
-      label.setAttribute('x', pos.x + 20);
-      label.setAttribute('y', pos.y + 36);
-      label.setAttribute('class','label');
-      label.textContent = s.title;
-
-      const sublabel = document.createElementNS('http://www.w3.org/2000/svg','text');
-      sublabel.setAttribute('x', pos.x + 20);
-      sublabel.setAttribute('y', pos.y + 58);
-      sublabel.setAttribute('class','sublabel');
-      sublabel.textContent = 'Click for details';
-
-      g.appendChild(rect); g.appendChild(badge); g.appendChild(label); g.appendChild(sublabel);
-      gNodes.appendChild(g);
-    });
-
-    // Tooltip & sidebar logic
-    function setDetails(id){
-      const s = stages.find(x => x.id === id);
-      if(!s) return;
-      detailTitle.textContent = s.title;
-      list.innerHTML = s.notes.map(n => `<li>${n}</li>`).join('');
+    function showOverview(){
+      currentLevel='overview';
+      backBtn.style.display='none';
+      detailTitle.textContent='Overview';
+      list.innerHTML='<li>Click a milestone to drill into its steps</li>';
+      drawFlow(milestones);
     }
 
-    function showTip(x, y, text){
-      tip.innerHTML = text;
-      tip.style.left = x + 'px';
-      tip.style.top = y + 'px';
-      tip.classList.add('show');
+    function showSubsteps(id){
+      const m=milestones.find(x=>x.id===id);
+      if(!m||!m.substeps) return;
+      currentLevel=id;
+      backBtn.style.display='inline-block';
+      detailTitle.textContent=m.title;
+      list.innerHTML=m.substeps.map(s=>`<li>${s.title}</li>`).join('');
+      drawFlow(m.substeps);
     }
-    function hideTip(){ tip.classList.remove('show'); }
 
-    gNodes.addEventListener('pointerover', e => {
-      const g = e.target.closest('g[data-id]');
-      if(!g) return; const rect = svg.getBoundingClientRect();
-      const id = g.getAttribute('data-id');
-      const s = stages.find(x => x.id===id);
-      showTip(e.clientX - rect.left, e.clientY - rect.top, s.title);
-    });
-    gNodes.addEventListener('pointerout', hideTip);
-
-    gNodes.addEventListener('click', e => {
-      const g = e.target.closest('g[data-id]');
-      if(!g) return; setDetails(g.getAttribute('data-id'));
+    gNodes.addEventListener('click', e=>{
+      const g=e.target.closest('g[data-id]');
+      if(!g) return;
+      const id=g.getAttribute('data-id');
+      if(currentLevel==='overview') showSubsteps(id);
     });
 
-    // ---- Pan & Zoom (no external libs) ----
-    // We manipulate the SVG viewBox to pan/zoom
-    let view = { x:0, y:0, w:1400, h:420 };
-    function applyView(){ svg.setAttribute('viewBox', `${view.x} ${view.y} ${view.w} ${view.h}`); }
-    applyView();
+    backBtn.addEventListener('click',showOverview);
 
-    const canvasEl = document.getElementById('canvas');
-    let isPanning = false, start = {x:0, y:0}, startView = {...view};
-
-    canvasEl.addEventListener('pointerdown', (e)=>{
-      isPanning = true; canvasEl.setPointerCapture(e.pointerId);
-      start = { x: e.clientX, y: e.clientY }; startView = {...view};
-    });
-    canvasEl.addEventListener('pointermove', (e)=>{
-      if(!isPanning) return;
-      const rect = svg.getBoundingClientRect();
-      const dx = (e.clientX - start.x) * (view.w / rect.width);
-      const dy = (e.clientY - start.y) * (view.h / rect.height);
-      view.x = startView.x - dx; view.y = startView.y - dy; applyView();
-    });
-    canvasEl.addEventListener('pointerup', ()=>{ isPanning = false; });
-    canvasEl.addEventListener('pointercancel', ()=>{ isPanning = false; });
-
-    canvasEl.addEventListener('wheel', (e)=>{
-      e.preventDefault();
-      const scale = (e.deltaY < 0) ? 0.9 : 1.1; // zoom in/out
-      const rect = svg.getBoundingClientRect();
-      const mx = (e.clientX - rect.left) / rect.width;  // 0..1
-      const my = (e.clientY - rect.top) / rect.height; // 0..1
-      const vx = view.x + view.w * mx;
-      const vy = view.y + view.h * my;
-      view.w *= scale; view.h *= scale;
-      view.x = vx - view.w * mx; view.y = vy - view.h * my;
-      applyView();
-    }, { passive:false });
-
-    // Controls
-    document.getElementById('reset').addEventListener('click', ()=>{ view = {x:0,y:0,w:1400,h:420}; applyView(); detailTitle.textContent='Fully zoomed‑out overview'; list.innerHTML=''; });
-
-    document.getElementById('fit').addEventListener('click', ()=>{
-      // Fit the outer bounds of nodes nicely into the viewport
-      const minX = positions[0].x - 40;
-      const minY = positions[0].y - 40;
-      const maxX = positions[positions.length-1].x + NODE_W + 40;
-      const maxY = positions[0].y + NODE_H + 40;
-      view = { x:minX, y:minY, w:(maxX-minX), h:(maxY-minY) };
-      applyView();
-    });
-
-    // Autofit on load for overview
-    document.getElementById('fit').click();
+    showOverview();
   </script>
 </body>
 </html>
