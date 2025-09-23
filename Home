@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Wise Productions Intranet</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Lato', sans-serif;
+      margin: 0;
+      background-color: #F5F5F5; /* paper white */
+      color: #000; /* black text */
+    }
+    header {
+      background-color: #1B1F3B; /* midnight navy */
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      margin: 0;
+    }
+    nav a {
+      color: white;
+      margin: 0 1rem;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .container {
+      padding: 2rem;
+    }
+    .links, .policies, .news {
+      margin-bottom: 2rem;
+    }
+    .card {
+      display: inline-block;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      padding: 1rem;
+      margin: 0.5rem;
+      min-width: 150px;
+      text-align: center;
+    }
+    .card a {
+      text-decoration: none;
+      color: #1B1F3B;
+      font-weight: 600;
+    }
+    h2 {
+      color: #B76E79; /* heritage rose */
+      border-bottom: 2px solid #1B1F3B;
+      padding-bottom: 0.3rem;
+    }
+    footer {
+      background: #000;
+      color: white;
+      text-align: center;
+      padding: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Wise Productions</h1>
+    <nav>
+      <a href="#">Home</a>
+      <a href="#">Policies</a>
+      <a href="#">Processes</a>
+      <a href="#">Tools</a>
+      <a href="#">News</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <section class="links">
+      <h2>Quick Links</h2>
+      <div class="card"><a href="https://outlook.office.com">Outlook</a></div>
+      <div class="card"><a href="https://teams.microsoft.com">Teams</a></div>
+      <div class="card"><a href="#">Opsync</a></div>
+      <div class="card"><a href="#">Timesheets</a></div>
+    </section>
+
+    <section class="news">
+      <h2>Company News</h2>
+      <ul>
+        <li><strong>July 2025:</strong> Crew structure announcement</li>
+        <li><strong>June 2025:</strong> New design app live</li>
+        <li><strong>May 2025:</strong> Freelancer handbook updated</li>
+      </ul>
+    </section>
+
+    <section class="policies">
+      <h2>Policies & Processes</h2>
+      <ul>
+        <li><a href="#">Health & Safety Policy</a></li>
+        <li><a href="#">Freelancer Handbook</a></li>
+        <li><a href="#">Expenses Process</a></li>
+      </ul>
+    </section>
+  </div>
+
+  <footer>
+    © Wise Productions 2025 | Internal Use Only
+  </footer>
+</body>
+</html>
