@@ -48,7 +48,6 @@
       rx: 32;
       ry: 32;
       filter: drop-shadow(0 8px 14px rgba(0,0,0,.6));
-      transition: all 0.3s ease-in-out;
     }
     .label {
       font-size: 42px;
@@ -57,7 +56,6 @@
       pointer-events: none;
       text-anchor: middle;
       dominant-baseline: hanging;
-      transition: all 0.3s ease-in-out;
     }
     .subtext {
       font-size: 22px;
@@ -72,20 +70,12 @@
       stroke-width: 6;
       fill: none;
       marker-end: url(#arrow);
-      transition: all 0.3s ease-in-out;
     }
     .dimmed rect {
       filter: grayscale(100%) brightness(0.5);
-      transform: scale(0.95);
     }
     .dimmed text {
       fill: #6b7280 !important;
-    }
-    .dimmed-edge {
-      stroke: #1f2937 !important;
-    }
-    .highlight rect {
-      transform: scale(1.05);
     }
   </style>
 </head>
@@ -282,25 +272,21 @@
       resetView();
     }
 
-    // Hover spotlight
+    // Hover highlight/greyscale
     gNodes.addEventListener('mouseover',e=>{
       const g=e.target.closest('g[data-id]');
       if(!g) return;
       gNodes.querySelectorAll('g').forEach(node=>{
         if(node===g){
-          node.classList.add('highlight');
           node.classList.remove('dimmed');
         } else {
           node.classList.add('dimmed');
-          node.classList.remove('highlight');
         }
       });
-      gEdges.querySelectorAll('path').forEach(edge=>edge.classList.add('dimmed-edge'));
     });
 
     gNodes.addEventListener('mouseout',()=>{
-      gNodes.querySelectorAll('g').forEach(node=>node.classList.remove('dimmed','highlight'));
-      gEdges.querySelectorAll('path').forEach(e=>e.classList.remove('dimmed-edge'));
+      gNodes.querySelectorAll('g').forEach(node=>node.classList.remove('dimmed'));
     });
 
     // Click
