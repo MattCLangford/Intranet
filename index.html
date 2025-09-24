@@ -7,26 +7,28 @@
   <style>
     body {
       margin: 0;
-      background: #0b0f14;
-      color: #fff;
+      background: #fdfdfc; /* Paper white */
+      color: #333;
       font: 16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Arial, sans-serif;
       overflow: hidden;
     }
     header {
-      background: #111827;
+      background: #fdfdfc;
       padding: .8rem 1rem;
       display: flex;
       align-items: center;
       gap: 1rem;
+      border-bottom: 1px solid #ddd;
     }
     .title {
       font-weight: 700;
       font-size: 1.4rem;
+      color: #192a56;
     }
     .btn {
       appearance: none;
       border: none;
-      background: #2563eb;
+      background: #192a56;
       color: #fff;
       padding: .55rem 1rem;
       border-radius: 6px;
@@ -43,39 +45,39 @@
       display: block;
     }
     .node rect {
-      stroke: #0f172a;
-      stroke-width: 3;
-      rx: 32;
-      ry: 32;
-      filter: drop-shadow(0 8px 14px rgba(0,0,0,.6));
+      stroke: none;
+      stroke-width: 2;
+      rx: 28;
+      ry: 28;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,.15));
     }
     .label {
-      font-size: 42px;
-      fill: #ffffff;
-      font-weight: 800;
+      font-size: 36px;
+      fill: #fff;
+      font-weight: 700;
       pointer-events: none;
       text-anchor: middle;
       dominant-baseline: hanging;
     }
     .subtext {
-      font-size: 22px;
-      fill: #e5e7eb;
+      font-size: 20px;
+      fill: #f1f5f9;
       font-weight: 400;
       pointer-events: none;
       text-anchor: middle;
       dominant-baseline: hanging;
     }
     .edge {
-      stroke: #94a3b8;
-      stroke-width: 6;
+      stroke: #555;
+      stroke-width: 2.5;
       fill: none;
       marker-end: url(#arrow);
     }
     .dimmed rect {
-      filter: grayscale(100%) brightness(0.5);
+      filter: grayscale(100%) brightness(0.7);
     }
     .dimmed text {
-      fill: #6b7280 !important;
+      fill: #aaa !important;
     }
   </style>
 </head>
@@ -88,36 +90,31 @@
   <div class="canvas" id="canvas">
     <svg id="svg" viewBox="0 0 2000 4000">
       <defs>
-        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="14" markerHeight="14" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"></path>
+        <!-- Elegant slim arrow -->
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#555"></path>
         </marker>
+
+        <!-- Dynamic gradients from Nightfall Navy to Heritage Rose -->
         <linearGradient id="grad0" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#2563eb"/>
-          <stop offset="100%" stop-color="#1e40af"/>
+          <stop offset="0%" stop-color="#192a56"/>
+          <stop offset="100%" stop-color="#2e3c6a"/>
         </linearGradient>
         <linearGradient id="grad1" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#0891b2"/>
-          <stop offset="100%" stop-color="#155e75"/>
+          <stop offset="0%" stop-color="#2e3c6a"/>
+          <stop offset="100%" stop-color="#4c4d77"/>
         </linearGradient>
         <linearGradient id="grad2" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#10b981"/>
-          <stop offset="100%" stop-color="#065f46"/>
+          <stop offset="0%" stop-color="#4c4d77"/>
+          <stop offset="100%" stop-color="#6b5c7e"/>
         </linearGradient>
         <linearGradient id="grad3" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#f59e0b"/>
-          <stop offset="100%" stop-color="#92400e"/>
+          <stop offset="0%" stop-color="#6b5c7e"/>
+          <stop offset="100%" stop-color="#876683"/>
         </linearGradient>
         <linearGradient id="grad4" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#ec4899"/>
-          <stop offset="100%" stop-color="#9d174d"/>
-        </linearGradient>
-        <linearGradient id="grad5" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#8b5cf6"/>
-          <stop offset="100%" stop-color="#4c1d95"/>
-        </linearGradient>
-        <linearGradient id="grad6" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#ef4444"/>
-          <stop offset="100%" stop-color="#7f1d1d"/>
+          <stop offset="0%" stop-color="#876683"/>
+          <stop offset="100%" stop-color="#9e768f"/>
         </linearGradient>
       </defs>
       <g id="edges"></g>
@@ -189,7 +186,7 @@
         rect.setAttribute('y',y);
         rect.setAttribute('width',NODE_W);
         rect.setAttribute('height',NODE_H);
-        rect.setAttribute('fill',`url(#grad${i%7})`);
+        rect.setAttribute('fill',`url(#grad${Math.min(i,4)})`); // distribute navy→rose
 
         const label=document.createElementNS('http://www.w3.org/2000/svg','text');
         label.setAttribute('x',centerX+NODE_W/2);
@@ -230,6 +227,7 @@
       resetView();
     }
 
+    // Substeps keep same gradient base
     function showSubsteps(id){
       const m=milestones.find(x=>x.id===id);
       if(!m) return;
@@ -272,62 +270,39 @@
       resetView();
     }
 
-    // Hover highlight/greyscale
     gNodes.addEventListener('mouseover',e=>{
       const g=e.target.closest('g[data-id]');
       if(!g) return;
       gNodes.querySelectorAll('g').forEach(node=>{
-        if(node===g){
-          node.classList.remove('dimmed');
-        } else {
-          node.classList.add('dimmed');
-        }
+        if(node===g){node.classList.remove('dimmed');}
+        else{node.classList.add('dimmed');}
       });
     });
-
-    gNodes.addEventListener('mouseout',()=>{
-      gNodes.querySelectorAll('g').forEach(node=>node.classList.remove('dimmed'));
-    });
-
-    // Click
+    gNodes.addEventListener('mouseout',()=>{gNodes.querySelectorAll('g').forEach(node=>node.classList.remove('dimmed'));});
     gNodes.addEventListener('click',e=>{
       const g=e.target.closest('g[data-id]');
       if(!g) return;
       const id=g.getAttribute('data-id');
       if(currentLevel==='overview') showSubsteps(id);
     });
-
     backBtn.addEventListener('click',showOverview);
 
-    // Pan & zoom with separate input handling
     let view={x:0,y:0,w:2000,h:4000};
     function applyView(){svg.setAttribute('viewBox',`${view.x} ${view.y} ${view.w} ${view.h}`)}
     function resetView(){view={x:0,y:0,w:2000,h:4000};applyView();}
     applyView();
 
     const canvasEl=document.getElementById('canvas');
-    let isPanning=false,start={x:0,y:0},startView={...view},panMode=null;
+    let isPanning=false,start={x:0,y:0},startView={...view};
 
     canvasEl.addEventListener('pointerdown',e=>{
-      // mouse right/middle -> pan
-      if(e.pointerType==='mouse' && (e.button===1 || e.button===2)){
-        panMode='mouse';
-        isPanning=true;
-        start={x:e.clientX,y:e.clientY};
-        startView={...view};
-        canvasEl.setPointerCapture(e.pointerId);
-      }
-      // touch with 2 fingers -> pan
-      if(e.pointerType==='touch'){
-        if(e.isPrimary) return;
-        panMode='touch';
+      if(e.button===1 || e.button===2){
         isPanning=true;
         start={x:e.clientX,y:e.clientY};
         startView={...view};
         canvasEl.setPointerCapture(e.pointerId);
       }
     });
-
     canvasEl.addEventListener('pointermove',e=>{
       if(!isPanning) return;
       const rect=svg.getBoundingClientRect();
@@ -337,10 +312,7 @@
       view.y=startView.y-dy;
       applyView();
     });
-
-    canvasEl.addEventListener('pointerup',()=>{isPanning=false;panMode=null;});
-    canvasEl.addEventListener('pointercancel',()=>{isPanning=false;panMode=null;});
-
+    canvasEl.addEventListener('pointerup',()=>{isPanning=false;});
     canvasEl.addEventListener('wheel',e=>{
       e.preventDefault();
       const scale=(e.deltaY<0)?0.9:1.1;
