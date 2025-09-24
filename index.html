@@ -1,688 +1,86 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Wise Productions — Critical Client Flow (Editor)</title>
-<style>
-  :root{
-    --paper:#fdfdfc;
-    --navy:#192a56;
-    --rose:#9e768f;
-    --text:#333;
-    --muted:#888;
-    --edge:#555;
-    --ring:#b6c1ff;
-  }
-  *{box-sizing:border-box}
-  body{
-    margin:0;
-    background:var(--paper);
-    color:var(--text);
-    font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;
-  }
-  header{
-    position:sticky;top:0;z-index:10;
-    display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;
-    padding:.8rem 1rem;border-bottom:1px solid #ddd;background:var(--paper);
-  }
-  .title{font-weight:700;font-size:1.15rem;color:var(--navy);margin-right:auto}
-  .btn{appearance:none;border:1px solid #cfd3da;background:#fff;color:#111;padding:.5rem .8rem;border-radius:8px;cursor:pointer}
-  .btn.primary{background:var(--navy);color:#fff;border-color:var(--navy)}
-  .btn:disabled{opacity:.5;cursor:not-allowed}
-  .split{
-    display:grid;grid-template-columns:320px 1fr;gap:0;border-top:1px solid #eee
-  }
-  .sidebar{
-    border-right:1px solid #eee;background:#fff;min-height:calc(100vh - 66px);
-    padding:10px;
-  }
-  .form-row{display:flex;flex-direction:column;gap:.25rem;margin-bottom:.8rem}
-  label{font-size:.85rem;color:#444}
-  input[type="text"], textarea{
-    width:100%;padding:.55rem .6rem;border:1px solid #cfd3da;border-radius:8px;
-    font:inherit;background:#fff
-  }
-  textarea{min-height:80px;resize:vertical}
-  .hint{font-size:.8rem;color:#666}
-  .toolbar{display:flex;gap:.5rem;flex-wrap:wrap}
-  .canvas{position:relative;height:calc(100vh - 66px);overflow-y:auto}
-  svg{width:100%;display:block}
-  .node rect{
-    stroke:none;rx:28;ry:28;filter:drop-shadow(0 4px 8px rgba(0,0,0,.12))
-  }
-  .label{
-    font-size:36px;fill:#fff;font-weight:700;pointer-events:none;text-anchor:middle;dominant-baseline:hanging
-  }
-  .subtext{
-    font-size:20px;fill:#f1f5f9;font-weight:400;pointer-events:none;text-anchor:middle;dominant-baseline:hanging
-  }
-  .edge{stroke:var(--edge);stroke-width:2.5;fill:none;marker-end:url(#arrow)}
-  .selected rect{outline:3px solid var(--ring)}
-  .editable{cursor:text}
-  .ghost rect{opacity:.6;filter:none;stroke-dasharray:6 6;stroke:#bbb;stroke-width:2}
-  .dragging{opacity:.85}
-  .panel{padding:.5rem .75rem;border:1px dashed #ddd;border-radius:10px;background:#fafafa}
-  .row{display:flex;gap:.5rem;align-items:center}
-  .grow{flex:1}
-</style>
-</head>
-<body>
-<header>
-  <div class="title">Wise Productions — Critical Client Flow (Editor)</div>
+// Track selection
+let selectedNode = null;
 
-  <div class="toolbar">
-    <button class="btn primary" id="addMilestone">+ Milestone</button>
-    <button class="btn" id="addSubstep" title="Adds to the currently open milestone">+ Substep</button>
-    <button class="btn" id="deleteSelected">− Delete</button>
-    <button class="btn" id="back" style="display:none">← Back</button>
-  </div>
+gNodes.addEventListener('click', e=>{
+  const g=e.target.closest('g[data-id]');
+  if(!g) return;
+  const id=g.getAttribute('data-id');
+  selectedNode = { id, level: currentLevel };
+  if(currentLevel==='overview') showSubsteps(id);
+});
 
-  <div class="toolbar">
-    <button class="btn" id="exportJson">Export JSON</button>
-    <label class="btn" for="importJsonInput" style="cursor:pointer">Import JSON</label>
-    <input id="importJsonInput" type="file" accept="application/json" style="display:none">
-    <button class="btn" id="saveLocal">Save</button>
-    <button class="btn" id="loadLocal">Load</button>
-  </div>
-</header>
-
-<div class="split">
-  <aside class="sidebar">
-    <div class="panel">
-      <div class="form-row">
-        <label>Selection</label>
-        <div id="selLabel" class="hint">None</div>
-      </div>
-      <div class="form-row">
-        <label for="titleInput">Title (milestone or substep)</label>
-        <input id="titleInput" type="text" placeholder="Edit title…" />
-      </div>
-      <div class="form-row">
-        <label for="notesInput">Notes (multiline; optional for milestones)</label>
-        <textarea id="notesInput" placeholder="Optional notes…"></textarea>
-        <div class="hint">For milestones, the bullet list is displayed from substeps. For substeps, this field is unused.</div>
-      </div>
-      <div class="row">
-        <button class="btn grow" id="moveUp">Move Up ↑</button>
-        <button class="btn grow" id="moveDown">Move Down ↓</button>
-      </div>
-    </div>
-    <div style="height:8px"></div>
-    <div class="panel">
-      <div class="form-row">
-        <label>Tips</label>
-        <div class="hint">
-          • Double-click a title to edit inline.<br>
-          • Drag a box vertically to reorder.<br>
-          • Click a milestone to open its substeps.<br>
-          • Use Save/Load for local storage.
-        </div>
-      </div>
-    </div>
-  </aside>
-
-  <main class="canvas" id="canvas">
-    <svg id="svg" viewBox="0 0 2000 4000" preserveAspectRatio="xMidYMin">
-      <defs>
-        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-          <path d="M0 0 L10 5 L0 10 z" fill="#555"></path>
-        </marker>
-
-        <!-- 5 segment gradient set: Nightfall Navy → Heritage Rose -->
-        <linearGradient id="grad0" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#192a56"/><stop offset="100%" stop-color="#2e3c6a"/>
-        </linearGradient>
-        <linearGradient id="grad1" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#2e3c6a"/><stop offset="100%" stop-color="#4c4d77"/>
-        </linearGradient>
-        <linearGradient id="grad2" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#4c4d77"/><stop offset="100%" stop-color="#6b5c7e"/>
-        </linearGradient>
-        <linearGradient id="grad3" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#6b5c7e"/><stop offset="100%" stop-color="#876683"/>
-        </linearGradient>
-        <linearGradient id="grad4" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#876683"/><stop offset="100%" stop-color="#9e768f"/>
-        </linearGradient>
-      </defs>
-      <g id="edges"></g>
-      <g id="nodes"></g>
-    </svg>
-  </main>
-</div>
-
-<script>
-/* ----------------------------- Data & Helpers ----------------------------- */
-const DEFAULT_DATA = [
-  { id:'enquiry', title:'Enquiry received & logged', notes:'', substeps:[
-    { id: uid(), title:'Capture via web, email or phone' },
-    { id: uid(), title:'Log in CRM/Opsync' },
-    { id: uid(), title:'Auto-acknowledge receipt' }
-  ]},
-  { id:'qualify', title:'Qualification', notes:'', substeps:[
-    { id: uid(), title:'Clarify scope, budget, dates, venue' },
-    { id: uid(), title:'Tiering (T1/T2/T3)' },
-    { id: uid(), title:'Assign provisional owner' }
-  ]},
-  { id:'proposal', title:'Proposal / Quote sent', notes:'', substeps:[
-    { id: uid(), title:'Estimate crew, kit, logistics' },
-    { id: uid(), title:'Price build + GP check' },
-    { id: uid(), title:'Proposal issued with expiry' }
-  ]},
-  { id:'approval', title:'Approval & Deposit', notes:'', substeps:[
-    { id: uid(), title:'Contract + T&Cs issued' },
-    { id: uid(), title:'PO or e-signature captured' },
-    { id: uid(), title:'Deposit/payment confirmed' }
-  ]},
-  { id:'planning', title:'Pre-production & Planning', notes:'', substeps:[
-    { id: uid(), title:'Assign PM & create plan' },
-    { id: uid(), title:'Design sign-off & HOD review' },
-    { id: uid(), title:'Crew, logistics, kit prep scheduled' }
-  ]},
-  { id:'delivery', title:'Event Delivery', notes:'', substeps:[
-    { id: uid(), title:'Warehouse prep & QA checks' },
-    { id: uid(), title:'Load-in → show → load-out' },
-    { id: uid(), title:'On-site sign-offs captured' }
-  ]},
-  { id:'wrap', title:'Post-event wrap → END', notes:'', substeps:[
-    { id: uid(), title:'Crew & client feedback captured' },
-    { id: uid(), title:'Final invoice issued and paid' },
-    { id: uid(), title:'Retrospective stored' }
-  ]}
-];
-
-let data = structuredClone(DEFAULT_DATA);
-
-function uid(){ return 'id_'+Math.random().toString(36).slice(2,9); }
-function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
-function gradForIndex(i){ return `url(#grad${Math.min(i,4)})`; }
-
-/* ----------------------------- DOM references ----------------------------- */
-const svg = document.getElementById('svg');
-const gNodes = document.getElementById('nodes');
-const gEdges = document.getElementById('edges');
-const backBtn = document.getElementById('back');
-const canvasEl = document.getElementById('canvas');
-
-const addMilestoneBtn = document.getElementById('addMilestone');
-const addSubstepBtn = document.getElementById('addSubstep');
-const deleteBtn = document.getElementById('deleteSelected');
-const exportBtn = document.getElementById('exportJson');
-const importInput = document.getElementById('importJsonInput');
-const saveLocalBtn = document.getElementById('saveLocal');
-const loadLocalBtn = document.getElementById('loadLocal');
-
-const selLabel = document.getElementById('selLabel');
-const titleInput = document.getElementById('titleInput');
-const notesInput = document.getElementById('notesInput');
-const moveUpBtn = document.getElementById('moveUp');
-const moveDownBtn = document.getElementById('moveDown');
-
-/* ------------------------------- View State ------------------------------- */
-let view = { x:0, y:0, w:2000, h:4000 };
-function applyView(){ svg.setAttribute('viewBox',`${view.x} ${view.y} ${view.w} ${view.h}`); }
-function resetView(){ view = { x:0,y:0,w:2000,h:4000 }; applyView(); }
-
-let mode = 'overview';       // 'overview' | milestoneId
-let selected = null;         // {type:'milestone'|'substep', milestoneId, substepId?}
-let dragState = null;        // drag metadata
-
-/* --------------------------------- Render -------------------------------- */
-function clear(){ gNodes.innerHTML=''; gEdges.innerHTML=''; }
-
-function drawOverview(){
-  clear();
-  const NODE_W=800, SPACING=200;
-  const centerX = 1000 - NODE_W/2;
-  let y = 200;
-
-  data.forEach((m,i)=>{
-    const nodeH = 140 + ((m.substeps.length+1)*40);
-    const g = nodeGroup({ id:m.id, x:centerX, y, w:NODE_W, h:nodeH, fill:gradForIndex(i), title:m.title, bullets:m.substeps.map(s=>s.title) });
-    g.classList.toggle('selected', selected?.type==='milestone' && selected?.milestoneId===m.id);
-    gNodes.appendChild(g);
-
-    // Edge to next
-    if(i < data.length-1){
-      const path = document.createElementNS('http://www.w3.org/2000/svg','path');
-      path.setAttribute('d',`M ${centerX+NODE_W/2} ${y+nodeH} L ${centerX+NODE_W/2} ${y+nodeH+SPACING}`);
-      path.setAttribute('class','edge');
-      gEdges.appendChild(path);
-    }
-    y += nodeH + SPACING;
+// Make text editable
+function makeEditable(el, callback) {
+  el.setAttribute('contentEditable', true);
+  el.addEventListener('blur', () => {
+    callback(el.textContent);
   });
-
-  bindNodeInteractions();
 }
 
-function drawSubsteps(milestoneId){
-  clear();
-  const m = data.find(x=>x.id===milestoneId);
-  if(!m) return;
-  const NODE_W=800, NODE_H=220, SPACING=150;
-  const centerX = 1000 - NODE_W/2;
-  let y = 200;
-
-  m.substeps.forEach((s,i)=>{
-    const g = nodeGroup({ id:s.id, x:centerX, y, w:NODE_W, h:NODE_H, fill:gradForIndex(i), title:s.title });
-    g.classList.toggle('selected', selected?.type==='substep' && selected?.substepId===s.id);
-    gNodes.appendChild(g);
-
-    if(i < m.substeps.length-1){
-      const path = document.createElementNS('http://www.w3.org/2000/svg','path');
-      path.setAttribute('d',`M ${centerX+NODE_W/2} ${y+NODE_H} L ${centerX+NODE_W/2} ${y+NODE_H+SPACING}`);
-      path.setAttribute('class','edge');
-      gEdges.appendChild(path);
-    }
-    y += NODE_H + SPACING;
-  });
-
-  bindNodeInteractions();
-}
-
-function nodeGroup({id,x,y,w,h,fill,title,bullets=[]}){
-  const g = document.createElementNS('http://www.w3.org/2000/svg','g');
-  g.setAttribute('data-id', id);
-  g.setAttribute('class','node');
-  g.setAttribute('transform',`translate(0,0)`);
-
-  const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
-  rect.setAttribute('x',x); rect.setAttribute('y',y); rect.setAttribute('width',w); rect.setAttribute('height',h);
-  rect.setAttribute('fill',fill);
-  g.appendChild(rect);
-
-  const label = document.createElementNS('http://www.w3.org/2000/svg','text');
-  label.setAttribute('x',x+w/2); label.setAttribute('y',y+50); label.setAttribute('class','label editable');
-  label.textContent = title;
-  g.appendChild(label);
-
-  bullets.forEach((t,idx)=>{
-    const sub = document.createElementNS('http://www.w3.org/2000/svg','text');
-    sub.setAttribute('x',x+w/2); sub.setAttribute('y',y+110+(idx*36));
-    sub.setAttribute('class','subtext');
-    sub.textContent = '• ' + t;
-    g.appendChild(sub);
-  });
-
-  return g;
-}
-
-/* --------------------------- Interactions (Click) ------------------------- */
-function bindNodeInteractions(){
-  // Click to select / open
-  gNodes.querySelectorAll('g.node').forEach(g=>{
-    g.addEventListener('click', (e)=>{
-      e.stopPropagation();
+// Example: let labels be editable
+function enableEditing() {
+  gNodes.querySelectorAll('.label, .subtext').forEach(el=>{
+    makeEditable(el, newText=>{
+      // update milestones data when text changes
+      const g = el.closest('g');
       const id = g.getAttribute('data-id');
-      if(mode==='overview'){
-        // select milestone and open substeps
-        selected = { type:'milestone', milestoneId:id };
-        updateSidebar();
-        mode = id;
-        backBtn.style.display='inline-block';
-        drawSubsteps(id);
-        resetView();
-        canvasEl.scrollTo({ top: 0, behavior: 'smooth' });
-      }else{
-        // select substep
-        selected = { type:'substep', milestoneId:mode, substepId:id };
-        updateSidebar();
-        highlightSelection();
+      if(currentLevel==='overview'){
+        const m = milestones.find(x=>x.id===id);
+        if(m) m.title = newText;
+      } else {
+        const m = milestones.find(x=>x.id===currentLevel);
+        if(m){
+          const idx = m.substeps.indexOf(el.textContent);
+          if(idx>-1) m.substeps[idx] = newText;
+        }
       }
-    }, { passive:true });
-
-    // Double-click to inline edit the title text
-    const label = g.querySelector('.label');
-    label.addEventListener('dblclick', (e)=>{
-      e.stopPropagation();
-      inlineEditLabel(label);
     });
   });
-
-  // Drag to reorder
-  enableDragReorder();
 }
 
-function highlightSelection(){
-  gNodes.querySelectorAll('g.node').forEach(gn=>gn.classList.remove('selected'));
-  if(!selected) return;
-  if(selected.type==='milestone'){
-    const el = gNodes.querySelector(`g.node[data-id="${selected.milestoneId}"]`);
-    if(el) el.classList.add('selected');
-  }else{
-    const el = gNodes.querySelector(`g.node[data-id="${selected.substepId}"]`);
-    if(el) el.classList.add('selected');
-  }
+// Hook into draw functions
+function drawFlow(items){ 
+  // ...existing code...
+  enableEditing(); // <— at the end
+}
+function showSubsteps(id){ 
+  // ...existing code...
+  enableEditing(); // <— at the end
 }
 
-/* ------------------------- Inline Editing (labels) ------------------------ */
-function inlineEditLabel(labelEl){
-  // Build a floating HTML input overlayed where the label sits
-  const bbox = labelEl.getBoundingClientRect();
-  const host = document.createElement('input');
-  host.type='text';
-  host.value = labelEl.textContent;
-  host.style.position='fixed';
-  host.style.left = (bbox.left + window.scrollX) + 'px';
-  host.style.top = (bbox.top + window.scrollY) + 'px';
-  host.style.width = Math.max(260, bbox.width) + 'px';
-  host.style.padding = '6px 8px';
-  host.style.border = '1px solid #cfd3da';
-  host.style.borderRadius = '8px';
-  host.style.zIndex = 9999;
-  host.style.font = '16px system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif';
-  document.body.appendChild(host);
-  host.focus(); host.select();
-
-  function commit(val){
-    labelEl.textContent = val;
-    // write back to data model
-    if(mode==='overview'){
-      const id = labelEl.closest('g').getAttribute('data-id');
-      const m = data.find(x=>x.id===id);
-      if(m){ m.title = val; }
-      drawOverview(); // refresh bullets positions
-    }else{
-      const sid = labelEl.closest('g').getAttribute('data-id');
-      const m = data.find(x=>x.id===mode);
-      if(m){
-        const s = m.substeps.find(z=>z.id===sid);
-        if(s){ s.title = val; }
-      }
-      drawSubsteps(mode);
+// Add buttons
+document.getElementById('addMilestone').addEventListener('click',()=>{
+  const newId = 'milestone_'+Date.now();
+  milestones.push({ id:newId, title:'New Milestone', substeps:['Step 1'] });
+  showOverview();
+});
+document.getElementById('addSubstep').addEventListener('click',()=>{
+  if(currentLevel!=='overview'){
+    const m=milestones.find(x=>x.id===currentLevel);
+    if(m){
+      m.substeps.push('New Step');
+      showSubsteps(m.id);
     }
-    document.body.removeChild(host);
-  }
-  host.addEventListener('keydown', e=>{
-    if(e.key==='Enter') commit(host.value);
-    if(e.key==='Escape'){ document.body.removeChild(host); }
-  });
-  host.addEventListener('blur', ()=>commit(host.value));
-}
-
-/* -------------------------- Drag & Drop Reordering ------------------------ */
-function enableDragReorder(){
-  const nodes = [...gNodes.querySelectorAll('g.node')];
-  nodes.forEach(g=>{
-    g.style.cursor='grab';
-    g.onpointerdown = (e)=>{
-      // only left click / primary
-      if(e.button!==0) return;
-      e.preventDefault();
-      const rect = g.querySelector('rect');
-      const x = +rect.getAttribute('x');
-      const y = +rect.getAttribute('y');
-      const w = +rect.getAttribute('width');
-      const h = +rect.getAttribute('height');
-
-      dragState = {
-        id: g.getAttribute('data-id'),
-        startY: e.clientY,
-        origY: y,
-        w,h,x,
-        ghost: null,
-        node: g
-      };
-
-      g.classList.add('dragging');
-      g.setPointerCapture(e.pointerId);
-
-      // create ghost placeholder
-      const ghost = document.createElementNS('http://www.w3.org/2000/svg','g');
-      ghost.setAttribute('class','node ghost');
-      const gr = document.createElementNS('http://www.w3.org/2000/svg','rect');
-      gr.setAttribute('x',x); gr.setAttribute('y',y);
-      gr.setAttribute('width',w); gr.setAttribute('height',h);
-      gr.setAttribute('fill','transparent');
-      ghost.appendChild(gr);
-      gNodes.insertBefore(ghost, g.nextSibling);
-      dragState.ghost = ghost;
-    };
-
-    g.onpointermove = (e)=>{
-      if(!dragState || dragState.node!==g) return;
-      const dy = e.clientY - dragState.startY;
-      g.setAttribute('transform',`translate(0,${dy})`);
-    };
-
-    g.onpointerup = ()=>{
-      if(!dragState || dragState.node!==g) return;
-      g.classList.remove('dragging');
-      g.releasePointerCapture;
-
-      // Compute new order by comparing centre Y positions
-      const order = [];
-      const yCenters = [];
-      const NODE_W = dragState.w;
-      const NODE_H = dragState.h;
-
-      const items = (mode==='overview') ? data : data.find(x=>x.id===mode).substeps;
-      const centerX = 1000 - NODE_W/2;
-      const SPACING = (mode==='overview') ? 200 : 150;
-      const startY = 200;
-
-      // build list of current item ids in visual order based on translateY
-      let y = startY;
-      const all = [...gNodes.querySelectorAll('g.node')].filter(n=>!n.classList.contains('ghost'));
-      all.forEach(n=>{
-        const id = n.getAttribute('data-id');
-        // get base y for this visual line
-        const rect = n.querySelector('rect');
-        const baseY = +rect.getAttribute('y');
-        // add current translate
-        const t = n.getAttribute('transform');
-        let dy = 0;
-        if(t && t.includes('translate')) dy = +t.split(',')[1].replace(')','') || 0;
-        const cy = baseY + dy + NODE_H/2;
-        yCenters.push({id, cy});
-      });
-
-      // sort by cy to get new order
-      yCenters.sort((a,b)=>a.cy-b.cy);
-      const newOrderIds = yCenters.map(o=>o.id);
-
-      // apply new order to data
-      if(mode==='overview'){
-        data = newOrderIds.map(id=> data.find(m=>m.id===id));
-        drawOverview();
-      }else{
-        const m = data.find(x=>x.id===mode);
-        m.substeps = newOrderIds.map(id=> m.substeps.find(s=>s.id===id));
-        drawSubsteps(mode);
-      }
-
-      // clean up
-      if(dragState.ghost) dragState.ghost.remove();
-      g.setAttribute('transform','translate(0,0)');
-      dragState = null;
-    };
-  });
-}
-
-/* --------------------------------- Sidebar -------------------------------- */
-function updateSidebar(){
-  if(!selected){
-    selLabel.textContent = 'None';
-    titleInput.value = '';
-    notesInput.value = '';
-    addSubstepBtn.disabled = true;
-    moveUpBtn.disabled = true;
-    moveDownBtn.disabled = true;
-    return;
-  }
-
-  if(selected.type==='milestone'){
-    const m = data.find(x=>x.id===selected.milestoneId);
-    selLabel.textContent = 'Milestone';
-    titleInput.value = m?.title || '';
-    notesInput.value = m?.notes || '';
-    addSubstepBtn.disabled = false;
-
-    const idx = data.findIndex(x=>x.id===selected.milestoneId);
-    moveUpBtn.disabled = (idx<=0);
-    moveDownBtn.disabled = (idx>=data.length-1);
-  }else{
-    const m = data.find(x=>x.id===selected.milestoneId);
-    const idx = m.substeps.findIndex(x=>x.id===selected.substepId);
-    const s = m.substeps[idx];
-    selLabel.textContent = 'Substep';
-    titleInput.value = s?.title || '';
-    notesInput.value = ''; // substeps don’t use notes pane
-    addSubstepBtn.disabled = false; // still allow adding to current milestone
-    moveUpBtn.disabled = (idx<=0);
-    moveDownBtn.disabled = (idx>=m.substeps.length-1);
-  }
-}
-
-titleInput.addEventListener('input', ()=>{
-  if(!selected) return;
-  if(selected.type==='milestone'){
-    const m = data.find(x=>x.id===selected.milestoneId);
-    if(m){ m.title = titleInput.value; drawMode(); }
-  }else{
-    const m = data.find(x=>x.id===selected.milestoneId);
-    const s = m?.substeps.find(z=>z.id===selected.substepId);
-    if(s){ s.title = titleInput.value; drawMode(); }
   }
 });
-
-notesInput.addEventListener('input', ()=>{
-  if(!selected || selected.type!=='milestone') return;
-  const m = data.find(x=>x.id===selected.milestoneId);
-  if(m){ m.notes = notesInput.value; }
-});
-
-moveUpBtn.addEventListener('click', ()=>{
-  if(!selected) return;
-  if(selected.type==='milestone'){
-    const idx = data.findIndex(m=>m.id===selected.milestoneId);
-    if(idx>0){ [data[idx-1],data[idx]]=[data[idx],data[idx-1]]; drawOverview(); }
-  }else{
-    const m = data.find(x=>x.id===selected.milestoneId);
-    const i = m.substeps.findIndex(s=>s.id===selected.substepId);
-    if(i>0){ [m.substeps[i-1],m.substeps[i]]=[m.substeps[i],m.substeps[i-1]]; drawSubsteps(m.id); }
+document.getElementById('deleteSelected').addEventListener('click',()=>{
+  if(!selectedNode) return;
+  if(selectedNode.level==='overview'){
+    const idx=milestones.findIndex(x=>x.id===selectedNode.id);
+    if(idx>-1){milestones.splice(idx,1);showOverview();}
+  } else {
+    const m=milestones.find(x=>x.id===currentLevel);
+    if(m){
+      m.substeps=m.substeps.filter(s=>s!==selectedNode.id);
+      showSubsteps(m.id);
+    }
   }
-  updateSidebar();
+  selectedNode=null;
 });
-moveDownBtn.addEventListener('click', ()=>{
-  if(!selected) return;
-  if(selected.type==='milestone'){
-    const idx = data.findIndex(m=>m.id===selected.milestoneId);
-    if(idx<data.length-1){ [data[idx+1],data[idx]]=[data[idx],data[idx+1]]; drawOverview(); }
-  }else{
-    const m = data.find(x=>x.id===selected.milestoneId);
-    const i = m.substeps.findIndex(s=>s.id===selected.substepId);
-    if(i<m.substeps.length-1){ [m.substeps[i+1],m.substeps[i]]=[m.substeps[i],m.substeps[i+1]]; drawSubsteps(m.id); }
-  }
-  updateSidebar();
+document.getElementById('exportJSON').addEventListener('click',()=>{
+  const dataStr="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(milestones,null,2));
+  const a=document.createElement('a');
+  a.setAttribute("href",dataStr);
+  a.setAttribute("download","process.json");
+  a.click();
 });
-
-/* --------------------------------- Buttons -------------------------------- */
-addMilestoneBtn.addEventListener('click', ()=>{
-  const id = uid();
-  data.push({ id, title:'New Milestone', notes:'', substeps:[ {id:uid(), title:'New Step'} ]});
-  mode = 'overview';
-  selected = { type:'milestone', milestoneId:id };
-  drawOverview(); resetView(); canvasEl.scrollTo({ top: 0, behavior:'smooth' }); updateSidebar();
-});
-
-addSubstepBtn.addEventListener('click', ()=>{
-  if(mode==='overview') return alert('Open a milestone first to add substeps.');
-  const m = data.find(x=>x.id===mode);
-  const sid = uid();
-  m.substeps.push({ id:sid, title:'New Step' });
-  selected = { type:'substep', milestoneId:m.id, substepId:sid };
-  drawSubsteps(m.id); resetView(); canvasEl.scrollTo({ top: 0, behavior:'smooth' }); updateSidebar();
-});
-
-deleteBtn.addEventListener('click', ()=>{
-  if(!selected) return;
-  if(selected.type==='milestone'){
-    const idx = data.findIndex(x=>x.id===selected.milestoneId);
-    if(idx>-1) data.splice(idx,1);
-    mode='overview'; selected=null; drawOverview();
-  }else{
-    const m = data.find(x=>x.id===selected.milestoneId);
-    const i = m.substeps.findIndex(s=>s.id===selected.substepId);
-    if(i>-1) m.substeps.splice(i,1);
-    selected=null; drawSubsteps(m.id);
-  }
-  updateSidebar();
-});
-
-backBtn.addEventListener('click', ()=>{
-  mode='overview';
-  backBtn.style.display='none';
-  selected = selected?.type==='milestone' ? selected : null; // keep milestone selected if applicable
-  drawOverview();
-  resetView();
-  canvasEl.scrollTo({ top: 0, behavior:'smooth' });
-  updateSidebar();
-});
-
-exportBtn.addEventListener('click', ()=>{
-  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'process.json'; a.click();
-  URL.revokeObjectURL(url);
-});
-
-importInput.addEventListener('change', async (e)=>{
-  const file = e.target.files?.[0];
-  if(!file) return;
-  try{
-    const txt = await file.text();
-    const json = JSON.parse(txt);
-    if(!Array.isArray(json)) throw new Error('Invalid format');
-    data = json;
-    mode='overview'; selected=null;
-    drawOverview(); resetView(); canvasEl.scrollTo({ top: 0, behavior:'smooth' }); updateSidebar();
-  }catch(err){
-    alert('Import failed: ' + err.message);
-  }finally{
-    importInput.value='';
-  }
-});
-
-saveLocalBtn.addEventListener('click', ()=>{
-  localStorage.setItem('wp_process_editor', JSON.stringify(data));
-  alert('Saved to browser storage.');
-});
-loadLocalBtn.addEventListener('click', ()=>{
-  const txt = localStorage.getItem('wp_process_editor');
-  if(!txt) return alert('Nothing saved yet.');
-  try{
-    data = JSON.parse(txt);
-    mode='overview'; selected=null;
-    drawOverview(); resetView(); canvasEl.scrollTo({ top: 0, behavior:'smooth' }); updateSidebar();
-  }catch(e){ alert('Load failed.'); }
-});
-
-/* --------------------------------- Drawing -------------------------------- */
-function drawMode(){
-  if(mode==='overview'){ drawOverview(); }
-  else { drawSubsteps(mode); }
-}
-
-function highlightOnRender(){
-  // Keep selection visible after redraw
-  highlightSelection();
-}
-
-/* ------------------------------- Init render ------------------------------ */
-applyView();
-drawOverview();
-updateSidebar();
-
-/* ------------------------------- Utilities -------------------------------- */
-// click blank area clears selection (in substeps view only)
-svg.addEventListener('click', (e)=>{
-  if(e.target === svg){
-    if(mode!=='overview'){ selected=null; updateSidebar(); drawSubsteps(mode); }
-  }
-});
-</script>
-</body>
-</html>
