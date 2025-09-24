@@ -40,7 +40,7 @@
     .canvas {
       position: relative;
       height: 90vh;
-      overflow-y: auto; /* add scrollbar for milestone page */
+      overflow-y: auto; /* native scrollbar */
     }
     svg {
       width: 100%;
@@ -167,6 +167,7 @@
     const gNodes=document.getElementById('nodes');
     const gEdges=document.getElementById('edges');
     const backBtn=document.getElementById('back');
+    const canvasEl=document.getElementById('canvas');
 
     function clear(){gNodes.innerHTML='';gEdges.innerHTML='';}
 
@@ -227,6 +228,8 @@
       backBtn.style.display='none';
       drawFlow(milestones);
       resetView();
+      // smooth scroll to top
+      canvasEl.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function showSubsteps(id){
@@ -269,6 +272,8 @@
         y+=NODE_H+SPACING;
       });
       resetView();
+      // smooth scroll to top
+      canvasEl.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     // Hover highlight
@@ -289,6 +294,7 @@
     });
     backBtn.addEventListener('click',showOverview);
 
+    // view reset
     let view={x:0,y:0,w:2000,h:4000};
     function applyView(){svg.setAttribute('viewBox',`${view.x} ${view.y} ${view.w} ${view.h}`)}
     function resetView(){view={x:0,y:0,w:2000,h:4000};applyView();}
