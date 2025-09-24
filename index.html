@@ -10,7 +10,6 @@
       background: #fdfdfc; /* Paper white */
       color: #333;
       font: 16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Arial, sans-serif;
-      overflow: hidden;
     }
     header {
       background: #fdfdfc;
@@ -19,6 +18,9 @@
       align-items: center;
       gap: 1rem;
       border-bottom: 1px solid #ddd;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
     .title {
       font-weight: 700;
@@ -38,10 +40,10 @@
     .canvas {
       position: relative;
       height: 90vh;
+      overflow-y: auto; /* add scrollbar for milestone page */
     }
     svg {
       width: 100%;
-      height: 100%;
       display: block;
     }
     .node rect {
@@ -88,14 +90,14 @@
   </header>
 
   <div class="canvas" id="canvas">
-    <svg id="svg" viewBox="0 0 2000 4000">
+    <svg id="svg" viewBox="0 0 2000 4000" preserveAspectRatio="xMidYMin">
       <defs>
         <!-- Elegant slim arrow -->
         <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
           <path d="M 0 0 L 10 5 L 0 10 z" fill="#555"></path>
         </marker>
 
-        <!-- Dynamic gradients from Nightfall Navy to Heritage Rose -->
+        <!-- Gradients navy → rose -->
         <linearGradient id="grad0" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stop-color="#192a56"/>
           <stop offset="100%" stop-color="#2e3c6a"/>
@@ -186,7 +188,7 @@
         rect.setAttribute('y',y);
         rect.setAttribute('width',NODE_W);
         rect.setAttribute('height',NODE_H);
-        rect.setAttribute('fill',`url(#grad${Math.min(i,4)})`); // distribute navy→rose
+        rect.setAttribute('fill',`url(#grad${Math.min(i,4)})`);
 
         const label=document.createElementNS('http://www.w3.org/2000/svg','text');
         label.setAttribute('x',centerX+NODE_W/2);
@@ -227,7 +229,6 @@
       resetView();
     }
 
-    // Substeps keep same gradient base
     function showSubsteps(id){
       const m=milestones.find(x=>x.id===id);
       if(!m) return;
@@ -247,7 +248,7 @@
         rect.setAttribute('y',y);
         rect.setAttribute('width',NODE_W);
         rect.setAttribute('height',NODE_H);
-        rect.setAttribute('fill','url(#grad0)');
+        rect.setAttribute('fill',`url(#grad${Math.min(i,4)})`);
 
         const label=document.createElementNS('http://www.w3.org/2000/svg','text');
         label.setAttribute('x',centerX+NODE_W/2);
@@ -270,6 +271,7 @@
       resetView();
     }
 
+    // Hover highlight
     gNodes.addEventListener('mouseover',e=>{
       const g=e.target.closest('g[data-id]');
       if(!g) return;
@@ -291,42 +293,6 @@
     function applyView(){svg.setAttribute('viewBox',`${view.x} ${view.y} ${view.w} ${view.h}`)}
     function resetView(){view={x:0,y:0,w:2000,h:4000};applyView();}
     applyView();
-
-    const canvasEl=document.getElementById('canvas');
-    let isPanning=false,start={x:0,y:0},startView={...view};
-
-    canvasEl.addEventListener('pointerdown',e=>{
-      if(e.button===1 || e.button===2){
-        isPanning=true;
-        start={x:e.clientX,y:e.clientY};
-        startView={...view};
-        canvasEl.setPointerCapture(e.pointerId);
-      }
-    });
-    canvasEl.addEventListener('pointermove',e=>{
-      if(!isPanning) return;
-      const rect=svg.getBoundingClientRect();
-      const dx=(e.clientX-start.x)*(view.w/rect.width);
-      const dy=(e.clientY-start.y)*(view.h/rect.height);
-      view.x=startView.x-dx;
-      view.y=startView.y-dy;
-      applyView();
-    });
-    canvasEl.addEventListener('pointerup',()=>{isPanning=false;});
-    canvasEl.addEventListener('wheel',e=>{
-      e.preventDefault();
-      const scale=(e.deltaY<0)?0.9:1.1;
-      const rect=svg.getBoundingClientRect();
-      const mx=(e.clientX-rect.left)/rect.width;
-      const my=(e.clientY-rect.top)/rect.height;
-      const vx=view.x+view.w*mx;
-      const vy=view.y+view.h*my;
-      view.w*=scale;
-      view.h*=scale;
-      view.x=vx-view.w*mx;
-      view.y=vy-view.h*my;
-      applyView();
-    },{passive:false});
 
     showOverview();
   </script>
