@@ -3,304 +3,718 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Wise Productions — Critical Client Flow</title>
+  <title>Critical Client Flow — Editor</title>
   <style>
+    :root {
+      color-scheme: light;
+      --navy: #192a56;
+      --navy-dark: #101d3d;
+      --rose: #f8f0ff;
+      --surface: #ffffff;
+      --border: #e0e4ef;
+      --ink: #1f2933;
+      --muted: #61708b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      background: #fdfdfc; /* Paper white */
-      color: #333;
-      font: 16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Arial, sans-serif;
-    }
-    header {
-      background: #fdfdfc;
-      padding: .8rem 1rem;
+      background: linear-gradient(180deg, #f4f6fb 0%, #eef1f8 100%);
+      color: var(--ink);
+      font: 16px/1.5 "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+      min-height: 100vh;
       display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1.25rem clamp(1.25rem, 2vw, 2rem);
+      display: flex;
+      flex-wrap: wrap;
       align-items: center;
       gap: 1rem;
-      border-bottom: 1px solid #ddd;
       position: sticky;
       top: 0;
-      z-index: 10;
+      z-index: 20;
     }
-    .title {
-      font-weight: 700;
-      font-size: 1.4rem;
-      color: #192a56;
+
+    header h1 {
+      font-size: clamp(1.4rem, 2vw, 1.8rem);
+      margin: 0;
+      color: var(--navy);
+      letter-spacing: -.01em;
     }
-    .btn {
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: .95rem;
+    }
+
+    main {
+      flex: 1;
+      padding: clamp(1rem, 2vw, 2.5rem);
+      display: grid;
+      gap: clamp(1.5rem, 2vw, 2.5rem);
+      grid-template-columns: minmax(320px, 1.1fr) minmax(320px, 1fr);
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--surface);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 12px 28px -24px rgba(26, 34, 56, 0.4);
+      padding: clamp(1rem, 1.5vw, 1.75rem);
+      max-height: calc(100vh - 160px);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel h2 {
+      margin: 0 0 1rem;
+      font-size: 1.2rem;
+      color: var(--navy);
+    }
+
+    .scroll {
+      overflow: auto;
+      padding-right: .25rem;
+      flex: 1;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .75rem;
+      margin-bottom: 1rem;
+    }
+
+    button, .ghost-btn {
       appearance: none;
       border: none;
-      background: #192a56;
-      color: #fff;
-      padding: .55rem 1rem;
-      border-radius: 6px;
+      border-radius: 10px;
+      padding: .55rem .9rem;
+      font: inherit;
+      font-weight: 600;
       cursor: pointer;
+      transition: transform .12s ease, box-shadow .12s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      color: var(--surface);
+      background: var(--navy);
+      box-shadow: 0 6px 18px -10px rgba(25, 42, 86, .7);
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px -14px rgba(25, 42, 86, .7);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: .5;
+      box-shadow: none;
+    }
+
+    .ghost-btn {
+      background: transparent;
+      border: 1px solid rgba(25, 42, 86, .18);
+      color: var(--navy);
+      box-shadow: none;
+    }
+
+    .editor-node {
+      background: rgba(25, 42, 86, 0.04);
+      border: 1px solid rgba(25, 42, 86, 0.1);
+      border-radius: 14px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      position: relative;
+    }
+
+    .editor-node::before {
+      content: attr(data-label);
+      position: absolute;
+      top: -12px;
+      left: 16px;
+      background: var(--navy);
+      color: #fff;
+      font-size: .75rem;
+      padding: .1rem .5rem;
+      border-radius: 999px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .editor-node.depth-1::before { content: "Milestone"; }
+    .editor-node.depth-2::before { content: "Sub Stage"; }
+    .editor-node.depth-3::before { content: "Step"; }
+    .editor-node.depth-4::before { content: "Detail"; }
+    .editor-node.depth-5::before { content: "Sub Detail"; }
+    .editor-node.depth-6::before { content: "Micro Step"; }
+
+    .node-fields {
+      display: grid;
+      gap: .75rem;
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      font-size: .85rem;
+      color: var(--muted);
+      gap: .35rem;
+    }
+
+    input[type="text"], textarea {
+      font: inherit;
+      border-radius: 10px;
+      border: 1px solid rgba(25, 42, 86, 0.18);
+      padding: .5rem .65rem;
+      width: 100%;
+      resize: vertical;
+      background: #fff;
+    }
+
+    textarea {
+      min-height: 72px;
+    }
+
+    .node-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+    }
+
+    .node-children {
+      margin-top: 1rem;
+      padding-left: 1rem;
+      border-left: 3px solid rgba(25, 42, 86, 0.15);
+      display: grid;
+      gap: 1rem;
+    }
+
+    .info {
+      background: rgba(25, 42, 86, .08);
+      border-radius: 12px;
+      padding: 1rem;
+      color: var(--navy-dark);
+      font-size: .92rem;
+      margin-bottom: 1rem;
+    }
+
+    .preview {
+      counter-reset: milestone;
+      display: grid;
+      gap: 1.25rem;
+    }
+
+    .preview-card {
+      background: linear-gradient(135deg, rgba(25, 42, 86, 0.95), rgba(78, 106, 168, 0.9));
+      border-radius: 20px;
+      padding: 1.5rem;
+      color: #f9fbff;
+      box-shadow: 0 14px 30px -22px rgba(8, 15, 45, 0.9);
+      position: relative;
+    }
+
+    .preview-card h3 {
+      margin: 0 0 .5rem;
+      font-size: 1.35rem;
+      letter-spacing: -.01em;
+    }
+
+    .preview-card p {
+      margin: 0 0 1rem;
+      color: rgba(245, 248, 255, .82);
+      font-size: .98rem;
+    }
+
+    .preview-card::before {
+      counter-increment: milestone;
+      content: counter(milestone);
+      position: absolute;
+      top: -16px;
+      right: 16px;
+      background: rgba(255, 255, 255, .1);
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .preview-children {
+      margin-top: 1rem;
+      border-left: 2px dashed rgba(255, 255, 255, .3);
+      padding-left: 1.25rem;
+      display: grid;
+      gap: 1rem;
+    }
+
+    .preview-children .preview-card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.15));
+      color: #fff;
+      box-shadow: none;
+    }
+
+    .status {
+      margin-top: .75rem;
+      font-size: .9rem;
+      color: var(--muted);
+      min-height: 1.2rem;
+    }
+
+    .status.success { color: #107869; }
+    .status.error { color: #c81e38; }
+
+    .hidden-input {
       display: none;
     }
-    .canvas {
-      position: relative;
-      height: 90vh;
-      overflow-y: auto; /* native scrollbar */
-    }
-    svg {
-      width: 100%;
-      display: block;
-    }
-    .node rect {
-      stroke: none;
-      stroke-width: 2;
-      rx: 28;
-      ry: 28;
-      filter: drop-shadow(0 4px 8px rgba(0,0,0,.15));
-    }
-    .label {
-      font-size: 36px;
-      fill: #fff;
-      font-weight: 700;
-      pointer-events: none;
-      text-anchor: middle;
-      dominant-baseline: hanging;
-    }
-    .subtext {
-      font-size: 20px;
-      fill: #f1f5f9;
-      font-weight: 400;
-      pointer-events: none;
-      text-anchor: middle;
-      dominant-baseline: hanging;
-    }
-    .edge {
-      stroke: #555;
-      stroke-width: 2.5;
-      fill: none;
-      marker-end: url(#arrow);
-    }
-    .dimmed rect {
-      filter: grayscale(100%) brightness(0.7);
-    }
-    .dimmed text {
-      fill: #aaa !important;
+
+    @media (max-width: 1024px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      .panel {
+        max-height: none;
+      }
     }
   </style>
 </head>
 <body>
   <header>
-    <div class="title">Wise Productions — Critical Client Flow</div>
-    <button class="btn" id="back">← Back</button>
+    <div>
+      <h1>Critical Client Flow (CCF) — Editor</h1>
+      <p>Design and maintain your milestones, sub stages, and deep-dive sub steps with full control.</p>
+    </div>
   </header>
 
-  <div class="canvas" id="canvas">
-    <svg id="svg" viewBox="0 0 2000 4000" preserveAspectRatio="xMidYMin">
-      <defs>
-        <!-- Elegant slim arrow -->
-        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#555"></path>
-        </marker>
+  <main>
+    <section class="panel" aria-labelledby="editor-heading">
+      <div class="toolbar">
+        <button type="button" id="addRoot">➕ Add Milestone</button>
+        <button type="button" id="saveDataverse">💾 Save to Dataverse</button>
+        <button type="button" class="ghost-btn" id="exportJson">⬇️ Export JSON</button>
+        <button type="button" class="ghost-btn" id="importJson">⬆️ Import JSON</button>
+        <input type="file" id="importFile" class="hidden-input" accept="application/json" />
+      </div>
+      <div class="info">
+        <strong>How it works</strong>
+        <ul>
+          <li>Milestone is the highest level. Add nested sub stages and steps up to six layers deep.</li>
+          <li>Click <em>Add Sub-step</em> inside any card to cascade deeper into the process.</li>
+          <li>Use Move Up / Move Down to reorder items within the same level.</li>
+          <li>Changes are auto-saved to your browser and can be exported or pushed to Dataverse.</li>
+        </ul>
+      </div>
+      <h2 id="editor-heading">Structure</h2>
+      <div class="scroll" id="editor"></div>
+      <div class="status" id="status"></div>
+    </section>
 
-        <!-- Gradients navy → rose -->
-        <linearGradient id="grad0" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#192a56"/>
-          <stop offset="100%" stop-color="#2e3c6a"/>
-        </linearGradient>
-        <linearGradient id="grad1" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#2e3c6a"/>
-          <stop offset="100%" stop-color="#4c4d77"/>
-        </linearGradient>
-        <linearGradient id="grad2" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#4c4d77"/>
-          <stop offset="100%" stop-color="#6b5c7e"/>
-        </linearGradient>
-        <linearGradient id="grad3" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#6b5c7e"/>
-          <stop offset="100%" stop-color="#876683"/>
-        </linearGradient>
-        <linearGradient id="grad4" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#876683"/>
-          <stop offset="100%" stop-color="#9e768f"/>
-        </linearGradient>
-      </defs>
-      <g id="edges"></g>
-      <g id="nodes"></g>
-    </svg>
-  </div>
+    <section class="panel" aria-labelledby="preview-heading">
+      <h2 id="preview-heading">Live Preview</h2>
+      <p class="info" style="margin-top:0">This preview updates instantly, showing how clients experience your process across milestones and nested stages.</p>
+      <div class="scroll">
+        <div id="preview" class="preview"></div>
+      </div>
+    </section>
+  </main>
+
+  <template id="emptyState">
+    <div style="padding:2rem;text-align:center;color:var(--muted);">
+      <p>No milestones yet. Start by adding one from the toolbar.</p>
+    </div>
+  </template>
 
   <script>
-    const milestones = [
-      { id:'enquiry', title:'Enquiry received & logged', substeps:[
-        'Capture via web, email or phone',
-        'Log in CRM/Opsync',
-        'Auto-acknowledge receipt'
-      ]},
-      { id:'qualify', title:'Qualification', substeps:[
-        'Clarify scope, budget, dates, venue',
-        'Tiering (T1/T2/T3)',
-        'Assign provisional owner'
-      ]},
-      { id:'proposal', title:'Proposal / Quote sent', substeps:[
-        'Estimate crew, kit, logistics',
-        'Price build + GP check',
-        'Proposal issued with expiry'
-      ]},
-      { id:'approval', title:'Approval & Deposit', substeps:[
-        'Contract + T&Cs issued',
-        'PO or e-signature captured',
-        'Deposit/payment confirmed'
-      ]},
-      { id:'planning', title:'Pre-production & Planning', substeps:[
-        'Assign PM & create plan',
-        'Design sign-off & HOD review',
-        'Crew, logistics, kit prep scheduled'
-      ]},
-      { id:'delivery', title:'Event Delivery', substeps:[
-        'Warehouse prep & QA checks',
-        'Load-in → show → load-out',
-        'On-site sign-offs captured'
-      ]},
-      { id:'wrap', title:'Post-event wrap → END', substeps:[
-        'Crew & client feedback captured',
-        'Final invoice issued and paid',
-        'Retrospective stored'
-      ]}
+    const MAX_DEPTH = 6;
+    const STORAGE_KEY = 'ccf-editor-data-v1';
+
+    const defaultFlow = [
+      {
+        id: createId(),
+        title: 'Initial Discovery',
+        description: 'Understand the client, scope, and desired outcomes.',
+        children: [
+          {
+            id: createId(),
+            title: 'Intake Call',
+            description: 'Gather baseline information and qualify the opportunity.',
+            children: [
+              {
+                id: createId(),
+                title: 'Prepare Call Agenda',
+                description: 'Outline discovery prompts and confirm attendees.',
+                children: []
+              },
+              {
+                id: createId(),
+                title: 'Conduct Discovery Session',
+                description: 'Capture goals, constraints, and success metrics.',
+                children: []
+              }
+            ]
+          },
+          {
+            id: createId(),
+            title: 'Needs Assessment',
+            description: 'Translate discovery output into solution requirements.',
+            children: []
+          }
+        ]
+      },
+      {
+        id: createId(),
+        title: 'Solution Design',
+        description: 'Craft the recommended approach and validate it internally.',
+        children: [
+          {
+            id: createId(),
+            title: 'Storyboard Experience',
+            description: 'Build an end-to-end walkthrough for the client journey.',
+            children: []
+          },
+          {
+            id: createId(),
+            title: 'Internal Review',
+            description: 'Stress-test logistics, staffing, and budget feasibility.',
+            children: []
+          }
+        ]
+      }
     ];
 
-    const svg=document.getElementById('svg');
-    const gNodes=document.getElementById('nodes');
-    const gEdges=document.getElementById('edges');
-    const backBtn=document.getElementById('back');
-    const canvasEl=document.getElementById('canvas');
+    function createId() {
+      if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+      }
+      return 'id-' + Math.random().toString(36).slice(2, 9);
+    }
 
-    function clear(){gNodes.innerHTML='';gEdges.innerHTML='';}
+    const editorEl = document.getElementById('editor');
+    const previewEl = document.getElementById('preview');
+    const statusEl = document.getElementById('status');
+    const addRootBtn = document.getElementById('addRoot');
+    const saveBtn = document.getElementById('saveDataverse');
+    const exportBtn = document.getElementById('exportJson');
+    const importBtn = document.getElementById('importJson');
+    const importFileInput = document.getElementById('importFile');
+    const emptyTemplate = document.getElementById('emptyState');
 
-    function drawFlow(items){
-      clear();
-      const NODE_W=800, SPACING=200;
-      const centerX = 1000 - NODE_W/2;
-      let y = 200;
-      items.forEach((s,i)=>{
-        const lineCount=s.substeps.length+1;
-        const NODE_H=140+(lineCount*40);
+    let flow = loadFromStorage();
+    renderAll();
 
-        const g=document.createElementNS('http://www.w3.org/2000/svg','g');
-        g.setAttribute('data-id',s.id);
-        g.setAttribute('class','node');
+    addRootBtn.addEventListener('click', () => {
+      flow.push(createNode('New Milestone'));
+      renderAll(true);
+    });
 
-        const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
-        rect.setAttribute('x',centerX);
-        rect.setAttribute('y',y);
-        rect.setAttribute('width',NODE_W);
-        rect.setAttribute('height',NODE_H);
-        rect.setAttribute('fill',`url(#grad${Math.min(i,4)})`);
+    saveBtn.addEventListener('click', saveToDataverse);
+    exportBtn.addEventListener('click', downloadJson);
+    importBtn.addEventListener('click', () => importFileInput.click());
+    importFileInput.addEventListener('change', handleImport);
 
-        const label=document.createElementNS('http://www.w3.org/2000/svg','text');
-        label.setAttribute('x',centerX+NODE_W/2);
-        label.setAttribute('y',y+50);
-        label.setAttribute('class','label');
-        label.textContent=s.title;
+    function createNode(title = 'New Step', description = '') {
+      return {
+        id: createId(),
+        title,
+        description,
+        children: []
+      };
+    }
 
-        g.appendChild(rect);
-        g.appendChild(label);
+    function loadFromStorage() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            return parsed;
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to parse stored data, using defaults.', error);
+      }
+      return structuredClone(defaultFlow);
+    }
 
-        s.substeps.forEach((st,idx)=>{
-          const sub=document.createElementNS('http://www.w3.org/2000/svg','text');
-          sub.setAttribute('x',centerX+NODE_W/2);
-          sub.setAttribute('y',y+110+(idx*36));
-          sub.setAttribute('class','subtext');
-          sub.textContent='• '+st;
-          g.appendChild(sub);
+    function persist() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(flow));
+      } catch (error) {
+        console.error('Unable to persist data', error);
+      }
+    }
+
+    function renderAll(announce = false) {
+      renderEditor();
+      renderPreview();
+      persist();
+      if (announce) {
+        flashStatus('Structure updated.', 'success');
+      }
+    }
+
+    function renderEditor() {
+      editorEl.innerHTML = '';
+      if (!flow.length) {
+        editorEl.append(emptyTemplate.content.cloneNode(true));
+        return;
+      }
+      const list = document.createElement('div');
+      flow.forEach((node, index) => {
+        list.appendChild(buildEditorNode(node, 1, flow, index));
+      });
+      editorEl.appendChild(list);
+    }
+
+    function buildEditorNode(node, depth, parentArray, index) {
+      const wrapper = document.createElement('div');
+      wrapper.className = `editor-node depth-${depth}`;
+      wrapper.dataset.id = node.id;
+
+      const fields = document.createElement('div');
+      fields.className = 'node-fields';
+
+      const titleLabel = document.createElement('label');
+      titleLabel.textContent = 'Title';
+      const titleInput = document.createElement('input');
+      titleInput.type = 'text';
+      titleInput.value = node.title;
+      titleInput.placeholder = 'Describe this step';
+      titleInput.addEventListener('input', () => {
+        node.title = titleInput.value;
+        renderPreview();
+        persist();
+      });
+      titleLabel.appendChild(titleInput);
+
+      const descriptionLabel = document.createElement('label');
+      descriptionLabel.textContent = 'Description (optional)';
+      const descriptionInput = document.createElement('textarea');
+      descriptionInput.value = node.description || '';
+      descriptionInput.placeholder = 'Add clarifying details, owners, or exit criteria.';
+      descriptionInput.addEventListener('input', () => {
+        node.description = descriptionInput.value;
+        renderPreview();
+        persist();
+      });
+      descriptionLabel.appendChild(descriptionInput);
+
+      fields.append(titleLabel, descriptionLabel);
+
+      const actions = document.createElement('div');
+      actions.className = 'node-actions';
+
+      const addChildBtn = document.createElement('button');
+      addChildBtn.type = 'button';
+      addChildBtn.textContent = '➕ Add Sub-step';
+      addChildBtn.addEventListener('click', () => {
+        node.children.push(createNode(`New ${depth >= 1 ? 'Sub-step' : 'Item'}`));
+        renderAll(true);
+      });
+      if (depth >= MAX_DEPTH) {
+        addChildBtn.disabled = true;
+        addChildBtn.title = `Maximum depth of ${MAX_DEPTH} reached`;
+      }
+
+      const moveUpBtn = document.createElement('button');
+      moveUpBtn.type = 'button';
+      moveUpBtn.textContent = '⬆️ Move Up';
+      moveUpBtn.addEventListener('click', () => {
+        if (index > 0) {
+          moveNode(parentArray, index, index - 1);
+          renderAll();
+        }
+      });
+      if (index === 0) moveUpBtn.disabled = true;
+
+      const moveDownBtn = document.createElement('button');
+      moveDownBtn.type = 'button';
+      moveDownBtn.textContent = '⬇️ Move Down';
+      moveDownBtn.addEventListener('click', () => {
+        if (index < parentArray.length - 1) {
+          moveNode(parentArray, index, index + 1);
+          renderAll();
+        }
+      });
+      if (index === parentArray.length - 1) moveDownBtn.disabled = true;
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.type = 'button';
+      deleteBtn.textContent = '🗑️ Remove';
+      deleteBtn.classList.add('ghost-btn');
+      deleteBtn.addEventListener('click', () => {
+        const shouldDelete = confirm('Remove this item and all nested steps?');
+        if (shouldDelete) {
+          parentArray.splice(index, 1);
+          renderAll(true);
+        }
+      });
+
+      actions.append(addChildBtn, moveUpBtn, moveDownBtn, deleteBtn);
+      fields.appendChild(actions);
+
+      wrapper.appendChild(fields);
+
+      if (node.children && node.children.length) {
+        const childrenContainer = document.createElement('div');
+        childrenContainer.className = 'node-children';
+        node.children.forEach((child, childIndex) => {
+          childrenContainer.appendChild(buildEditorNode(child, depth + 1, node.children, childIndex));
         });
+        wrapper.appendChild(childrenContainer);
+      }
 
-        gNodes.appendChild(g);
+      return wrapper;
+    }
 
-        if(i<items.length-1){
-          const path=document.createElementNS('http://www.w3.org/2000/svg','path');
-          path.setAttribute('d',`M ${centerX+NODE_W/2} ${y+NODE_H} L ${centerX+NODE_W/2} ${y+NODE_H+SPACING}`);
-          path.setAttribute('class','edge');
-          gEdges.appendChild(path);
+    function moveNode(array, fromIndex, toIndex) {
+      const item = array.splice(fromIndex, 1)[0];
+      array.splice(toIndex, 0, item);
+    }
+
+    function renderPreview() {
+      previewEl.innerHTML = '';
+      if (!flow.length) {
+        previewEl.append(emptyTemplate.content.cloneNode(true));
+        return;
+      }
+      flow.forEach((node, index) => {
+        previewEl.appendChild(buildPreviewNode(node, 1, `${index + 1}`));
+      });
+    }
+
+    function buildPreviewNode(node, depth, numbering) {
+      const card = document.createElement('article');
+      card.className = 'preview-card';
+
+      const title = document.createElement('h3');
+      title.textContent = numbering ? `${numbering} — ${node.title}` : node.title;
+      card.appendChild(title);
+
+      if (node.description) {
+        const description = document.createElement('p');
+        description.textContent = node.description;
+        card.appendChild(description);
+      }
+
+      if (node.children && node.children.length) {
+        const childWrapper = document.createElement('div');
+        childWrapper.className = 'preview-children';
+        node.children.forEach((child, index) => {
+          const childNumber = numbering ? `${numbering}.${index + 1}` : `${index + 1}`;
+          childWrapper.appendChild(buildPreviewNode(child, depth + 1, childNumber));
+        });
+        card.appendChild(childWrapper);
+      }
+
+      return card;
+    }
+
+    async function saveToDataverse() {
+      const payload = {
+        name: 'Critical Client Flow',
+        updatedAt: new Date().toISOString(),
+        milestones: flow
+      };
+
+      flashStatus('Saving to Dataverse…', '');
+      try {
+        if (window.DATAVERSE_ENDPOINT) {
+          const response = await fetch(window.DATAVERSE_ENDPOINT, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+        } else {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(flow));
         }
-
-        y += NODE_H + SPACING;
-      });
+        flashStatus('Saved successfully. Dataverse payload ready.', 'success');
+      } catch (error) {
+        console.error(error);
+        flashStatus('Failed to save. Check the console for details.', 'error');
+      }
     }
 
-    let currentLevel='overview';
-    function showOverview(){
-      currentLevel='overview';
-      backBtn.style.display='none';
-      drawFlow(milestones);
-      resetView();
-      // smooth scroll to top
-      canvasEl.scrollTo({ top: 0, behavior: 'smooth' });
+    function downloadJson() {
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        milestones: flow
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'critical-client-flow.json';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      flashStatus('Exported JSON downloaded.', 'success');
     }
 
-    function showSubsteps(id){
-      const m=milestones.find(x=>x.id===id);
-      if(!m) return;
-      currentLevel=id;
-      backBtn.style.display='inline-block';
-      clear();
-      const NODE_W=800,NODE_H=220,SPACING=150;
-      const centerX=1000-NODE_W/2;
-      let y=200;
-      m.substeps.forEach((s,i)=>{
-        const g=document.createElementNS('http://www.w3.org/2000/svg','g');
-        g.setAttribute('data-id',s);
-        g.setAttribute('class','node');
-
-        const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
-        rect.setAttribute('x',centerX);
-        rect.setAttribute('y',y);
-        rect.setAttribute('width',NODE_W);
-        rect.setAttribute('height',NODE_H);
-        rect.setAttribute('fill',`url(#grad${Math.min(i,4)})`);
-
-        const label=document.createElementNS('http://www.w3.org/2000/svg','text');
-        label.setAttribute('x',centerX+NODE_W/2);
-        label.setAttribute('y',y+NODE_H/2);
-        label.setAttribute('class','label');
-        label.textContent=s;
-
-        g.appendChild(rect);
-        g.appendChild(label);
-        gNodes.appendChild(g);
-
-        if(i<m.substeps.length-1){
-          const path=document.createElementNS('http://www.w3.org/2000/svg','path');
-          path.setAttribute('d',`M ${centerX+NODE_W/2} ${y+NODE_H} L ${centerX+NODE_W/2} ${y+NODE_H+SPACING}`);
-          path.setAttribute('class','edge');
-          gEdges.appendChild(path);
+    async function handleImport(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        if (!parsed || !Array.isArray(parsed.milestones || parsed)) {
+          throw new Error('Invalid structure. Expecting { milestones: [] } or an array.');
         }
-        y+=NODE_H+SPACING;
-      });
-      resetView();
-      // smooth scroll to top
-      canvasEl.scrollTo({ top: 0, behavior: 'smooth' });
+        flow = Array.isArray(parsed) ? parsed : parsed.milestones;
+        normalizeIds(flow);
+        renderAll(true);
+        flashStatus('JSON imported successfully.', 'success');
+      } catch (error) {
+        console.error('Import failed', error);
+        flashStatus('Import failed. Please verify the file format.', 'error');
+      } finally {
+        importFileInput.value = '';
+      }
     }
 
-    // Hover highlight
-    gNodes.addEventListener('mouseover',e=>{
-      const g=e.target.closest('g[data-id]');
-      if(!g) return;
-      gNodes.querySelectorAll('g').forEach(node=>{
-        if(node===g){node.classList.remove('dimmed');}
-        else{node.classList.add('dimmed');}
+    function normalizeIds(nodes) {
+      nodes.forEach(node => {
+        if (!node.id) node.id = createId();
+        if (!node.children) node.children = [];
+        if (Array.isArray(node.children)) {
+          normalizeIds(node.children);
+        }
       });
-    });
-    gNodes.addEventListener('mouseout',()=>{gNodes.querySelectorAll('g').forEach(node=>node.classList.remove('dimmed'));});
-    gNodes.addEventListener('click',e=>{
-      const g=e.target.closest('g[data-id]');
-      if(!g) return;
-      const id=g.getAttribute('data-id');
-      if(currentLevel==='overview') showSubsteps(id);
-    });
-    backBtn.addEventListener('click',showOverview);
+    }
 
-    // view reset
-    let view={x:0,y:0,w:2000,h:4000};
-    function applyView(){svg.setAttribute('viewBox',`${view.x} ${view.y} ${view.w} ${view.h}`)}
-    function resetView(){view={x:0,y:0,w:2000,h:4000};applyView();}
-    applyView();
-
-    showOverview();
+    function flashStatus(message, type) {
+      statusEl.textContent = message;
+      statusEl.className = `status ${type}`.trim();
+      if (message) {
+        setTimeout(() => {
+          if (statusEl.textContent === message) {
+            statusEl.textContent = '';
+            statusEl.className = 'status';
+          }
+        }, 4000);
+      }
+    }
   </script>
 </body>
 </html>
