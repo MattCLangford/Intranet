@@ -16,6 +16,12 @@
       --muted: #61708b;
       --editor-fr: 55fr;
       --preview-fr: 45fr;
+      --editor-scale: 1;
+      --preview-scale: 1;
+    }
+
+    html {
+      font-size: 67%;
     }
 
     * {
@@ -26,7 +32,9 @@
       margin: 0;
       background: linear-gradient(180deg, #f4f6fb 0%, #eef1f8 100%);
       color: var(--ink);
-      font: 16px/1.5 "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+      font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+      font-size: 1rem;
+      line-height: 1.5;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -35,11 +43,11 @@
     header {
       background: var(--surface);
       border-bottom: 1px solid var(--border);
-      padding: 1.25rem clamp(1.25rem, 2vw, 2rem);
+      padding: .9rem clamp(1rem, 2vw, 1.5rem);
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 1rem;
+      gap: .75rem;
       justify-content: space-between;
       position: sticky;
       top: 0;
@@ -47,7 +55,7 @@
     }
 
     header h1 {
-      font-size: clamp(1.4rem, 2vw, 1.8rem);
+      font-size: clamp(1.05rem, 1.4vw, 1.25rem);
       margin: 0;
       color: var(--navy);
       letter-spacing: -.01em;
@@ -56,54 +64,71 @@
     header p {
       margin: 0;
       color: var(--muted);
-      font-size: .95rem;
+      font-size: .7rem;
     }
 
     .layout-controls {
       display: flex;
       align-items: center;
-      gap: .5rem;
-      font-size: .85rem;
+      gap: .45rem;
+      font-size: .65rem;
       color: var(--muted);
       background: rgba(25, 42, 86, 0.06);
-      padding: .6rem .8rem;
+      padding: .5rem .7rem;
       border-radius: 999px;
       border: 1px solid rgba(25, 42, 86, 0.08);
       flex-wrap: wrap;
     }
 
-    .layout-controls label {
+    .layout-controls .control-group {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      background: rgba(255, 255, 255, .4);
+      padding: .25rem .5rem;
+      border-radius: 999px;
+    }
+
+    .layout-controls .control-group label {
       font-weight: 600;
       color: var(--navy);
-      font-size: .8rem;
+      font-size: .6rem;
       text-transform: uppercase;
       letter-spacing: .06em;
+      white-space: nowrap;
     }
 
     .layout-controls input[type="range"] {
       accent-color: var(--navy);
-      width: 140px;
+      width: 120px;
     }
 
-    .layout-controls span {
+    .layout-controls .control-group span {
       font-variant-numeric: tabular-nums;
+      color: var(--muted);
+    }
+
+    .layout-controls button {
+      font-size: .65rem;
+      padding: .35rem .55rem;
+      border-radius: 12px;
     }
 
     main {
       flex: 1;
-      padding: clamp(1rem, 2vw, 2.5rem);
+      padding: clamp(.75rem, 1.5vw, 1.75rem);
       display: grid;
-      gap: clamp(1.5rem, 2vw, 2.5rem);
+      gap: clamp(1.1rem, 1.5vw, 1.75rem);
       grid-template-columns: minmax(320px, var(--editor-fr)) minmax(320px, var(--preview-fr));
       align-items: start;
     }
 
     .panel {
       background: var(--surface);
-      border-radius: 16px;
+      border-radius: 12px;
       border: 1px solid var(--border);
-      box-shadow: 0 12px 28px -24px rgba(26, 34, 56, 0.4);
-      padding: clamp(1rem, 1.5vw, 1.75rem);
+      box-shadow: 0 10px 24px -24px rgba(26, 34, 56, 0.4);
+      padding: clamp(.75rem, 1.2vw, 1.3rem);
       max-height: calc(100vh - 160px);
       overflow: hidden;
       display: flex;
@@ -111,8 +136,8 @@
     }
 
     .panel h2 {
-      margin: 0 0 1rem;
-      font-size: 1.2rem;
+      margin: 0 0 .75rem;
+      font-size: .9rem;
       color: var(--navy);
     }
 
@@ -122,18 +147,30 @@
       flex: 1;
     }
 
+    .scaled {
+      transform-origin: top left;
+    }
+
+    .editor-scaled {
+      transform: scale(var(--editor-scale));
+    }
+
+    .preview-scaled {
+      transform: scale(var(--preview-scale));
+    }
+
     .toolbar {
       display: flex;
       flex-wrap: wrap;
-      gap: .75rem;
-      margin-bottom: 1rem;
+      gap: .55rem;
+      margin-bottom: .75rem;
     }
 
     button, .ghost-btn {
       appearance: none;
       border: none;
-      border-radius: 10px;
-      padding: .55rem .9rem;
+      border-radius: 8px;
+      padding: .4rem .7rem;
       font: inherit;
       font-weight: 600;
       cursor: pointer;
@@ -167,21 +204,21 @@
     .editor-node {
       background: rgba(25, 42, 86, 0.04);
       border: 1px solid rgba(25, 42, 86, 0.1);
-      border-radius: 14px;
-      padding: 1rem;
-      margin-bottom: 1rem;
+      border-radius: 10px;
+      padding: .75rem;
+      margin-bottom: .75rem;
       position: relative;
     }
 
     .editor-node::before {
       content: attr(data-label);
       position: absolute;
-      top: -12px;
-      left: 16px;
+      top: -10px;
+      left: 12px;
       background: var(--navy);
       color: #fff;
-      font-size: .75rem;
-      padding: .1rem .5rem;
+      font-size: .55rem;
+      padding: .08rem .4rem;
       border-radius: 999px;
       letter-spacing: .06em;
       text-transform: uppercase;
@@ -196,13 +233,13 @@
 
     .node-fields {
       display: grid;
-      gap: .75rem;
+      gap: .55rem;
     }
 
     label {
       display: flex;
       flex-direction: column;
-      font-size: .85rem;
+      font-size: .6rem;
       color: var(--muted);
       gap: .35rem;
     }
@@ -211,88 +248,88 @@
       font: inherit;
       border-radius: 10px;
       border: 1px solid rgba(25, 42, 86, 0.18);
-      padding: .5rem .65rem;
+      padding: .4rem .5rem;
       width: 100%;
       resize: vertical;
       background: #fff;
     }
 
     textarea {
-      min-height: 72px;
+      min-height: 54px;
     }
 
     .node-actions {
       display: flex;
       flex-wrap: wrap;
-      gap: .5rem;
+      gap: .35rem;
     }
 
     .node-children {
-      margin-top: 1rem;
-      padding-left: 1rem;
+      margin-top: .75rem;
+      padding-left: .75rem;
       border-left: 3px solid rgba(25, 42, 86, 0.15);
       display: grid;
-      gap: 1rem;
+      gap: .75rem;
     }
 
     .info {
       background: rgba(25, 42, 86, .08);
-      border-radius: 12px;
-      padding: 1rem;
+      border-radius: 10px;
+      padding: .75rem;
       color: var(--navy-dark);
-      font-size: .92rem;
-      margin-bottom: 1rem;
+      font-size: .62rem;
+      margin-bottom: .75rem;
     }
 
     .preview {
       counter-reset: milestone;
       display: grid;
-      gap: 1.25rem;
+      gap: .9rem;
     }
 
     .preview-card {
       background: linear-gradient(135deg, rgba(25, 42, 86, 0.95), rgba(78, 106, 168, 0.9));
-      border-radius: 20px;
-      padding: 1.5rem;
+      border-radius: 15px;
+      padding: 1.125rem;
       color: #f9fbff;
       box-shadow: 0 14px 30px -22px rgba(8, 15, 45, 0.9);
       position: relative;
     }
 
     .preview-card h3 {
-      margin: 0 0 .5rem;
-      font-size: 1.35rem;
+      margin: 0 0 .35rem;
+      font-size: .95rem;
       letter-spacing: -.01em;
     }
 
     .preview-card p {
-      margin: 0 0 1rem;
+      margin: 0 0 .75rem;
       color: rgba(245, 248, 255, .82);
-      font-size: .98rem;
+      font-size: .7rem;
     }
 
     .preview-card::before {
       counter-increment: milestone;
       content: counter(milestone);
       position: absolute;
-      top: -16px;
-      right: 16px;
+      top: -12px;
+      right: 12px;
       background: rgba(255, 255, 255, .1);
-      width: 48px;
-      height: 48px;
-      border-radius: 16px;
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
       display: grid;
       place-items: center;
       font-weight: 700;
-      font-size: 1.1rem;
+      font-size: .8rem;
     }
 
     .preview-children {
-      margin-top: 1rem;
+      margin-top: .75rem;
       border-left: 2px dashed rgba(255, 255, 255, .3);
-      padding-left: 1.25rem;
+      padding-left: .9rem;
       display: grid;
-      gap: 1rem;
+      gap: .75rem;
     }
 
     .preview-children .preview-card {
@@ -302,8 +339,8 @@
     }
 
     .status {
-      margin-top: .75rem;
-      font-size: .9rem;
+      margin-top: .55rem;
+      font-size: .65rem;
       color: var(--muted);
       min-height: 1.2rem;
     }
@@ -313,6 +350,42 @@
 
     .hidden-input {
       display: none;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    body.hide-help #editorHelp {
+      display: none;
+    }
+
+    body.hide-help .toolbar {
+      margin-top: 0;
+    }
+
+    body.hide-preview main {
+      grid-template-columns: minmax(320px, 1fr);
+    }
+
+    body.hide-preview section[aria-labelledby="preview-heading"] {
+      display: none;
+    }
+
+    body.hide-preview #previewInfo {
+      display: none;
+    }
+
+    body.hide-editor main {
+      grid-template-columns: minmax(320px, 1fr);
+    }
+
+    body.hide-editor section[aria-labelledby="editor-heading"] {
+      display: none;
+    }
+
+    body.hide-editor.hide-preview main {
+      grid-template-columns: minmax(320px, 1fr);
     }
 
     @media (max-width: 1024px) {
@@ -337,9 +410,24 @@
       <p>Design and maintain your milestones, sub stages, and deep-dive sub steps with full control.</p>
     </div>
     <div class="layout-controls">
-      <label for="panelSplit">Layout Balance</label>
-      <input type="range" id="panelSplit" min="30" max="70" value="55" />
-      <span id="panelSplitValue">55% / 45%</span>
+      <div class="control-group" role="group" aria-label="Layout balance">
+        <label for="panelSplit">Layout</label>
+        <input type="range" id="panelSplit" min="30" max="70" value="55" />
+        <span id="panelSplitValue">55% / 45%</span>
+      </div>
+      <div class="control-group" role="group" aria-label="Editor zoom">
+        <label for="editorScale">Editor</label>
+        <input type="range" id="editorScale" min="70" max="150" value="100" step="5" />
+        <span id="editorScaleValue">100%</span>
+      </div>
+      <div class="control-group" role="group" aria-label="Preview zoom">
+        <label for="previewScale">Preview</label>
+        <input type="range" id="previewScale" min="70" max="150" value="100" step="5" />
+        <span id="previewScaleValue">100%</span>
+      </div>
+      <button type="button" class="ghost-btn" id="toggleHelp" aria-pressed="false">❔ Hide Help</button>
+      <button type="button" class="ghost-btn" id="toggleEditor" aria-pressed="false">🧩 Hide Editor</button>
+      <button type="button" class="ghost-btn" id="togglePreview" aria-pressed="false">👁 Hide Preview</button>
     </div>
   </header>
 
@@ -352,7 +440,7 @@
         <button type="button" class="ghost-btn" id="importJson">⬆️ Import JSON</button>
         <input type="file" id="importFile" class="hidden-input" accept="application/json" />
       </div>
-      <div class="info">
+      <div class="info" id="editorHelp">
         <strong>How it works</strong>
         <ul>
           <li>Milestone is the highest level. Add nested sub stages and steps up to six layers deep.</li>
@@ -362,15 +450,17 @@
         </ul>
       </div>
       <h2 id="editor-heading">Structure</h2>
-      <div class="scroll" id="editor"></div>
+      <div class="scroll">
+        <div id="editor" class="scaled editor-scaled"></div>
+      </div>
       <div class="status" id="status"></div>
     </section>
 
     <section class="panel" aria-labelledby="preview-heading">
       <h2 id="preview-heading">Live Preview</h2>
-      <p class="info" style="margin-top:0">This preview updates instantly, showing how clients experience your process across milestones and nested stages.</p>
+      <p class="info" id="previewInfo" style="margin-top:0">This preview updates instantly, showing how clients experience your process across milestones and nested stages.</p>
       <div class="scroll">
-        <div id="preview" class="preview"></div>
+        <div id="preview" class="preview scaled preview-scaled"></div>
       </div>
     </section>
   </main>
@@ -384,6 +474,7 @@
   <script>
     const MAX_DEPTH = 6;
     const STORAGE_KEY = 'ccf-editor-data-v1';
+    const PREFERENCES_KEY = 'ccf-editor-preferences-v1';
     const previewState = {
       expanded: new Set()
     };
@@ -459,7 +550,18 @@
     const importFileInput = document.getElementById('importFile');
     const panelSplitInput = document.getElementById('panelSplit');
     const panelSplitValue = document.getElementById('panelSplitValue');
+    const toggleHelpBtn = document.getElementById('toggleHelp');
+    const toggleEditorBtn = document.getElementById('toggleEditor');
+    const togglePreviewBtn = document.getElementById('togglePreview');
+    const editorScaleInput = document.getElementById('editorScale');
+    const editorScaleValue = document.getElementById('editorScaleValue');
+    const previewScaleInput = document.getElementById('previewScale');
+    const previewScaleValue = document.getElementById('previewScaleValue');
     const emptyTemplate = document.getElementById('emptyState');
+
+    const preferences = loadPreferences();
+    applyScale('editor', preferences.editorScale, true);
+    applyScale('preview', preferences.previewScale, true);
 
     let flow = loadFromStorage();
     updatePanelSplit(Number(panelSplitInput?.value || 55));
@@ -476,6 +578,44 @@
     importFileInput.addEventListener('change', handleImport);
     panelSplitInput?.addEventListener('input', event => {
       updatePanelSplit(Number(event.target.value));
+    });
+
+    editorScaleInput?.addEventListener('input', event => {
+      applyScale('editor', Number(event.target.value) / 100);
+    });
+
+    previewScaleInput?.addEventListener('input', event => {
+      applyScale('preview', Number(event.target.value) / 100);
+    });
+
+    toggleHelpBtn?.addEventListener('click', () => {
+      const active = document.body.classList.toggle('hide-help');
+      toggleHelpBtn.setAttribute('aria-pressed', active);
+      toggleHelpBtn.textContent = active ? '❔ Show Help' : '❔ Hide Help';
+    });
+
+    toggleEditorBtn?.addEventListener('click', () => {
+      const active = document.body.classList.toggle('hide-editor');
+      toggleEditorBtn.setAttribute('aria-pressed', active);
+      toggleEditorBtn.textContent = active ? '🧩 Show Editor' : '🧩 Hide Editor';
+      if (document.body.classList.contains('hide-editor') && document.body.classList.contains('hide-preview')) {
+        document.body.classList.remove('hide-preview');
+        togglePreviewBtn?.setAttribute('aria-pressed', 'false');
+        if (togglePreviewBtn) togglePreviewBtn.textContent = '👁 Hide Preview';
+      }
+      syncPanelSplitControl();
+    });
+
+    togglePreviewBtn?.addEventListener('click', () => {
+      const active = document.body.classList.toggle('hide-preview');
+      togglePreviewBtn.setAttribute('aria-pressed', active);
+      togglePreviewBtn.textContent = active ? '👁 Show Preview' : '👁 Hide Preview';
+      if (document.body.classList.contains('hide-editor') && document.body.classList.contains('hide-preview')) {
+        document.body.classList.remove('hide-editor');
+        toggleEditorBtn?.setAttribute('aria-pressed', 'false');
+        if (toggleEditorBtn) toggleEditorBtn.textContent = '🧩 Hide Editor';
+      }
+      syncPanelSplitControl();
     });
 
     function createNode(title = 'New Step', description = '') {
@@ -502,11 +642,37 @@
       return structuredClone(defaultFlow);
     }
 
+    function loadPreferences() {
+      try {
+        const stored = localStorage.getItem(PREFERENCES_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed && typeof parsed === 'object') {
+            return {
+              editorScale: clampScale(Number(parsed.editorScale)),
+              previewScale: clampScale(Number(parsed.previewScale))
+            };
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to parse stored preferences, using defaults.', error);
+      }
+      return { editorScale: 1, previewScale: 1 };
+    }
+
     function persist() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(flow));
       } catch (error) {
         console.error('Unable to persist data', error);
+      }
+    }
+
+    function savePreferences() {
+      try {
+        localStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences));
+      } catch (error) {
+        console.error('Unable to persist preferences', error);
       }
     }
 
@@ -649,6 +815,34 @@
       flow.forEach((node, index) => {
         previewEl.appendChild(buildPreviewNode(node, 1, `${index + 1}`));
       });
+    }
+
+    function clampScale(value) {
+      if (!Number.isFinite(value)) return 1;
+      return Math.min(1.5, Math.max(0.7, value));
+    }
+
+    function applyScale(target, value, skipPersist = false) {
+      const clamped = clampScale(value);
+      const percent = Math.round(clamped * 100);
+      if (target === 'editor') {
+        document.documentElement.style.setProperty('--editor-scale', clamped);
+        if (editorScaleValue) editorScaleValue.textContent = `${percent}%`;
+        if (editorScaleInput && Number(editorScaleInput.value) !== percent) {
+          editorScaleInput.value = String(percent);
+        }
+        preferences.editorScale = clamped;
+      } else if (target === 'preview') {
+        document.documentElement.style.setProperty('--preview-scale', clamped);
+        if (previewScaleValue) previewScaleValue.textContent = `${percent}%`;
+        if (previewScaleInput && Number(previewScaleInput.value) !== percent) {
+          previewScaleInput.value = String(percent);
+        }
+        preferences.previewScale = clamped;
+      }
+      if (!skipPersist) {
+        savePreferences();
+      }
     }
 
     function buildPreviewNode(node, depth, numbering) {
@@ -823,8 +1017,22 @@
       document.documentElement.style.setProperty('--editor-fr', `${clamped}fr`);
       document.documentElement.style.setProperty('--preview-fr', `${previewShare}fr`);
       if (panelSplitValue) {
-        panelSplitValue.textContent = `${clamped}% / ${previewShare}%`;
+        if (document.body.classList.contains('hide-preview')) {
+          panelSplitValue.textContent = 'Editor only';
+        } else if (document.body.classList.contains('hide-editor')) {
+          panelSplitValue.textContent = 'Preview only';
+        } else {
+          panelSplitValue.textContent = `${clamped}% / ${previewShare}%`;
+        }
       }
+    }
+
+    function syncPanelSplitControl() {
+      const disableSlider = document.body.classList.contains('hide-preview') || document.body.classList.contains('hide-editor');
+      if (panelSplitInput) {
+        panelSplitInput.disabled = disableSlider;
+      }
+      updatePanelSplit(Number(panelSplitInput?.value || 55));
     }
 
     function flashStatus(message, type) {
