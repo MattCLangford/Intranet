@@ -132,6 +132,7 @@
       padding: clamp(.75rem, 1.2vw, 1.3rem);
       height: 100%;
       min-height: 0;
+      max-height: calc(100vh - 160px);
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -163,6 +164,18 @@
     .preview-scaled {
       transform: scale(var(--preview-scale));
       width: calc(100% / var(--preview-scale));
+    }
+
+    .scaled {
+      transform-origin: top left;
+    }
+
+    .editor-scaled {
+      transform: scale(var(--editor-scale));
+    }
+
+    .preview-scaled {
+      transform: scale(var(--preview-scale));
     }
 
     .toolbar {
@@ -555,6 +568,8 @@
     const exportBtn = document.getElementById('exportJson');
     const importBtn = document.getElementById('importJson');
     const importFileInput = document.getElementById('importFile');
+    const emptyTemplate = document.getElementById('emptyState');
+
     const panelSplitInput = document.getElementById('panelSplit');
     const panelSplitValue = document.getElementById('panelSplitValue');
     const toggleHelpBtn = document.getElementById('toggleHelp');
@@ -572,7 +587,24 @@
 
     let flow = loadFromStorage();
     updatePanelSplit(Number(panelSplitInput?.value || 55));
+
+    let flowAlt = loadFlow();
+
     renderAll();
+
+    function loadFlow() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) return JSON.parse(stored);
+      } catch (e) {
+        console.warn('Failed to parse stored data', e);
+      }
+      return defaultFlow;
+    }
+
+    function persist() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(flow));
+    }
 
     addRootBtn.addEventListener('click', () => {
       flow.push(createNode('New Milestone'));
@@ -583,16 +615,20 @@
     exportBtn.addEventListener('click', downloadJson);
     importBtn.addEventListener('click', () => importFileInput.click());
     importFileInput.addEventListener('change', handleImport);
-    panelSplitInput?.addEventListener('input', event => {
-      updatePanelSplit(Number(event.target.value));
+
+    panelSplitInput.addEventListener('input', () => {
+      updatePanelSplit(Number(panelSplitInput.value));
+      persistPreferences();
     });
 
     editorScaleInput?.addEventListener('input', event => {
       applyScale('editor', Number(event.target.value) / 100);
+      persistPreferences();
     });
 
     previewScaleInput?.addEventListener('input', event => {
       applyScale('preview', Number(event.target.value) / 100);
+      persistPreferences();
     });
 
     toggleHelpBtn?.addEventListener('click', () => {
@@ -687,8 +723,8 @@
       renderEditor();
       renderPreview();
       persist();
-      if (announce) {
-        flashStatus('Structure updated.', 'success');
+      if (force) {
+        flashStatus('Updated.', 'success');
       }
     }
 
@@ -698,17 +734,15 @@
         editorEl.append(emptyTemplate.content.cloneNode(true));
         return;
       }
-      const list = document.createElement('div');
       flow.forEach((node, index) => {
-        list.appendChild(buildEditorNode(node, 1, flow, index));
+        editorEl.appendChild(buildEditorNode(node, 1, flow, index));
       });
-      editorEl.appendChild(list);
     }
 
     function buildEditorNode(node, depth, parentArray, index) {
       const wrapper = document.createElement('div');
       wrapper.className = `editor-node depth-${depth}`;
-      wrapper.dataset.id = node.id;
+      wrapper.dataset.label = '';
 
       const fields = document.createElement('div');
       fields.className = 'node-fields';
@@ -718,7 +752,6 @@
       const titleInput = document.createElement('input');
       titleInput.type = 'text';
       titleInput.value = node.title;
-      titleInput.placeholder = 'Describe this step';
       titleInput.addEventListener('input', () => {
         node.title = titleInput.value;
         renderPreview();
@@ -1040,6 +1073,15 @@
         panelSplitInput.disabled = disableSlider;
       }
       updatePanelSplit(Number(panelSplitInput?.value || 55));
+    }
+
+    function persistPreferences() {
+      const prefs = {
+        panelSplit: Number(panelSplitInput.value),
+        editorScale: Number(editorScaleInput.value),
+        previewScale: Number(previewScaleInput.value)
+      };
+      localStorage.setItem(PREFERENCES_KEY, JSON.stringify(prefs));
     }
 
     function flashStatus(message, type) {
