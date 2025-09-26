@@ -3,25 +3,19 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wise Productions — Critical Client Flow</title>
   <title>Critical Client Flow — Editor</title>
   <style>
     :root {
       color-scheme: light;
       --navy: #192a56;
       --navy-dark: #101d3d;
-      --rose: #f8f0ff;
       --surface: #ffffff;
-      --border: #e0e4ef;
+      --border: #d8deec;
       --ink: #1f2933;
-      --muted: #61708b;
+      --muted: #5b6780;
       --editor-fr: 55fr;
       --preview-fr: 45fr;
-      --editor-scale: 1;
-      --preview-scale: 1;
-    }
-
-    html {
-      font-size: 67%;
     }
 
     * {
@@ -30,36 +24,37 @@
 
     body {
       margin: 0;
-      background: linear-gradient(180deg, #f4f6fb 0%, #eef1f8 100%);
+      background: #fdfdfc; /* Paper white */
+      color: #333;
+      font: 16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Arial, sans-serif;
+      background: linear-gradient(180deg, #f5f7fb 0%, #eff2f9 100%);
       color: var(--ink);
-      font: 16px/1.5 "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
-      font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
-      font-size: 1rem;
-      line-height: 1.5;
+      font: 15px/1.5 "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
 
     header {
+      background: #fdfdfc;
+      padding: .8rem 1rem;
       background: var(--surface);
       border-bottom: 1px solid var(--border);
-      padding: 1.25rem clamp(1.25rem, 2vw, 2rem);
-      padding: .9rem clamp(1rem, 2vw, 1.5rem);
+      padding: 1rem clamp(1.25rem, 3vw, 1.75rem);
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       gap: 1rem;
-      gap: .75rem;
+      border-bottom: 1px solid #ddd;
       justify-content: space-between;
       position: sticky;
       top: 0;
+      z-index: 10;
       z-index: 20;
     }
 
     header h1 {
-      font-size: clamp(1.4rem, 2vw, 1.8rem);
-      font-size: clamp(1.05rem, 1.4vw, 1.25rem);
+      font-size: clamp(1.3rem, 2vw, 1.65rem);
       margin: 0;
       color: var(--navy);
       letter-spacing: -.01em;
@@ -68,8 +63,7 @@
     header p {
       margin: 0;
       color: var(--muted);
-      font-size: .95rem;
-      font-size: .7rem;
+      font-size: .9rem;
     }
 
     .layout-controls {
@@ -77,148 +71,103 @@
       align-items: center;
       gap: .5rem;
       font-size: .85rem;
-      gap: .45rem;
-      font-size: .65rem;
       color: var(--muted);
       background: rgba(25, 42, 86, 0.06);
       padding: .6rem .8rem;
-      padding: .5rem .7rem;
       border-radius: 999px;
       border: 1px solid rgba(25, 42, 86, 0.08);
       flex-wrap: wrap;
     }
 
     .layout-controls label {
-    .layout-controls .control-group {
-      display: inline-flex;
-      align-items: center;
-      gap: .35rem;
-      background: rgba(255, 255, 255, .4);
-      padding: .25rem .5rem;
-      border-radius: 999px;
-    }
-
-    .layout-controls .control-group label {
       font-weight: 600;
       color: var(--navy);
       font-size: .8rem;
-      font-size: .6rem;
       text-transform: uppercase;
       letter-spacing: .06em;
-      white-space: nowrap;
     }
 
     .layout-controls input[type="range"] {
       accent-color: var(--navy);
       width: 140px;
-      width: 120px;
     }
+    .title {
+      font-weight: 700;
+      font-size: 1.4rem;
+      color: #192a56;
 
     .layout-controls span {
-    .layout-controls .control-group span {
       font-variant-numeric: tabular-nums;
-      color: var(--muted);
-    }
-
-    .layout-controls button {
-      font-size: .65rem;
-      padding: .35rem .55rem;
-      border-radius: 12px;
     }
 
     main {
       flex: 1;
-      padding: clamp(1rem, 2vw, 2.5rem);
-      min-height: 0;
-      padding: clamp(.75rem, 1.5vw, 1.75rem);
+      padding: clamp(.75rem, 2vw, 2rem);
       display: grid;
-      gap: clamp(1.5rem, 2vw, 2.5rem);
-      gap: clamp(1.1rem, 1.5vw, 1.75rem);
-      grid-template-columns: minmax(320px, var(--editor-fr)) minmax(320px, var(--preview-fr));
+      gap: clamp(1rem, 2vw, 1.75rem);
+      grid-template-columns: minmax(300px, var(--editor-fr)) minmax(280px, var(--preview-fr));
       align-items: start;
-      align-items: stretch;
     }
 
     .panel {
       background: var(--surface);
-      border-radius: 16px;
-      border-radius: 12px;
+      border-radius: 14px;
       border: 1px solid var(--border);
-      box-shadow: 0 12px 28px -24px rgba(26, 34, 56, 0.4);
-      padding: clamp(1rem, 1.5vw, 1.75rem);
+      box-shadow: 0 10px 26px -24px rgba(26, 34, 56, 0.45);
+      padding: clamp(.85rem, 1.2vw, 1.4rem);
       max-height: calc(100vh - 160px);
-      box-shadow: 0 10px 24px -24px rgba(26, 34, 56, 0.4);
-      padding: clamp(.75rem, 1.2vw, 1.3rem);
-      height: 100%;
-      min-height: 0;
       overflow: hidden;
       display: flex;
       flex-direction: column;
     }
+    .btn {
 
     .panel h2 {
-      margin: 0 0 1rem;
-      font-size: 1.2rem;
-      margin: 0 0 .75rem;
-      font-size: .9rem;
+      margin: 0 0 .85rem;
+      font-size: 1.05rem;
       color: var(--navy);
     }
 
     .scroll {
       overflow: auto;
-      overflow-y: auto;
-      overflow-x: hidden;
-      padding-right: .25rem;
+      padding-right: .2rem;
       flex: 1;
-      min-height: 0;
-    }
-
-    .scaled {
-      transform-origin: top left;
-    }
-
-    .editor-scaled {
-      transform: scale(var(--editor-scale));
-      width: calc(100% / var(--editor-scale));
-    }
-
-    .preview-scaled {
-      transform: scale(var(--preview-scale));
-      width: calc(100% / var(--preview-scale));
     }
 
     .toolbar {
       display: flex;
       flex-wrap: wrap;
-      gap: .75rem;
-      margin-bottom: 1rem;
-      gap: .55rem;
-      margin-bottom: .75rem;
+      gap: .5rem;
+      margin-bottom: .85rem;
     }
 
     button, .ghost-btn {
       appearance: none;
       border: none;
+      background: #192a56;
+      color: #fff;
+      padding: .55rem 1rem;
+      border-radius: 6px;
       border-radius: 10px;
-      padding: .55rem .9rem;
-      border-radius: 8px;
-      padding: .4rem .7rem;
+      padding: .45rem .75rem;
       font: inherit;
       font-weight: 600;
       cursor: pointer;
+      display: none;
       transition: transform .12s ease, box-shadow .12s ease;
       display: inline-flex;
       align-items: center;
-      gap: .45rem;
+      gap: .35rem;
       color: var(--surface);
       background: var(--navy);
-      box-shadow: 0 6px 18px -10px rgba(25, 42, 86, .7);
+      box-shadow: 0 6px 16px -12px rgba(25, 42, 86, .6);
     }
 
     button:hover:not(:disabled) {
       transform: translateY(-1px);
-      box-shadow: 0 10px 22px -14px rgba(25, 42, 86, .7);
+      box-shadow: 0 10px 20px -16px rgba(25, 42, 86, .7);
     }
+    .canvas {
 
     button:disabled {
       cursor: not-allowed;
@@ -228,38 +177,34 @@
 
     .ghost-btn {
       background: transparent;
-      border: 1px solid rgba(25, 42, 86, .18);
+      border: 1px solid rgba(25, 42, 86, .2);
       color: var(--navy);
       box-shadow: none;
     }
 
     .editor-node {
-      background: rgba(25, 42, 86, 0.04);
+      background: rgba(25, 42, 86, 0.035);
       border: 1px solid rgba(25, 42, 86, 0.1);
-      border-radius: 14px;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      border-radius: 10px;
-      padding: .75rem;
-      margin-bottom: .75rem;
+      border-radius: 12px;
+      padding: .85rem;
+      margin-bottom: .85rem;
       position: relative;
+      height: 90vh;
+      overflow-y: auto; /* native scrollbar */
     }
+    svg {
 
     .editor-node::before {
       content: attr(data-label);
       position: absolute;
-      top: -12px;
-      left: 16px;
-      top: -10px;
-      left: 12px;
+      top: -11px;
+      left: 14px;
       background: var(--navy);
       color: #fff;
-      font-size: .75rem;
-      padding: .1rem .5rem;
-      font-size: .55rem;
-      padding: .08rem .4rem;
+      font-size: .7rem;
+      padding: .08rem .45rem;
       border-radius: 999px;
-      letter-spacing: .06em;
+      letter-spacing: .08em;
       text-transform: uppercase;
     }
 
@@ -273,14 +218,12 @@
     .node-fields {
       display: grid;
       gap: .75rem;
-      gap: .55rem;
     }
 
     label {
       display: flex;
       flex-direction: column;
-      font-size: .85rem;
-      font-size: .6rem;
+      font-size: .8rem;
       color: var(--muted);
       gap: .35rem;
     }
@@ -289,128 +232,208 @@
       font: inherit;
       border-radius: 10px;
       border: 1px solid rgba(25, 42, 86, 0.18);
-      padding: .5rem .65rem;
-      padding: .4rem .5rem;
+      padding: .45rem .6rem;
       width: 100%;
+      display: block;
+    }
+    .node rect {
+      stroke: none;
+      stroke-width: 2;
+      rx: 28;
+      ry: 28;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,.15));
+    }
+    .label {
+      font-size: 36px;
+      fill: #fff;
+      font-weight: 700;
+      pointer-events: none;
+      text-anchor: middle;
+      dominant-baseline: hanging;
+    }
+    .subtext {
+      font-size: 20px;
+      fill: #f1f5f9;
+      font-weight: 400;
+      pointer-events: none;
+      text-anchor: middle;
+      dominant-baseline: hanging;
+    }
+    .edge {
+      stroke: #555;
+      stroke-width: 2.5;
+      fill: none;
+      marker-end: url(#arrow);
+    }
+    .dimmed rect {
+      filter: grayscale(100%) brightness(0.7);
+    }
+    .dimmed text {
+      fill: #aaa !important;
       resize: vertical;
       background: #fff;
     }
 
     textarea {
-      min-height: 72px;
-      min-height: 54px;
+      min-height: 64px;
     }
 
     .node-actions {
       display: flex;
       flex-wrap: wrap;
-      gap: .5rem;
-      gap: .35rem;
+      gap: .4rem;
     }
 
     .node-children {
       margin-top: 1rem;
-      padding-left: 1rem;
-      margin-top: .75rem;
-      padding-left: .75rem;
+      padding-left: .9rem;
       border-left: 3px solid rgba(25, 42, 86, 0.15);
       display: grid;
-      gap: 1rem;
       gap: .75rem;
     }
 
     .info {
-      background: rgba(25, 42, 86, .08);
+      background: rgba(25, 42, 86, .05);
       border-radius: 12px;
-      padding: 1rem;
-      border-radius: 10px;
-      padding: .75rem;
+      padding: .85rem;
       color: var(--navy-dark);
-      font-size: .92rem;
-      margin-bottom: 1rem;
-      font-size: .62rem;
-      margin-bottom: .75rem;
+      font-size: .86rem;
+      margin-bottom: .85rem;
     }
 
     .preview {
       counter-reset: milestone;
       display: grid;
-      gap: 1.25rem;
       gap: .9rem;
-      min-height: calc(100% / var(--preview-scale));
     }
 
     .preview-card {
-      background: linear-gradient(135deg, rgba(25, 42, 86, 0.95), rgba(78, 106, 168, 0.9));
-      border-radius: 20px;
-      padding: 1.5rem;
-      border-radius: 15px;
-      padding: 1.125rem;
-      color: #f9fbff;
-      box-shadow: 0 14px 30px -22px rgba(8, 15, 45, 0.9);
+      background: #fff;
+      border-radius: 16px;
+      padding: 1.1rem 1.2rem;
+      color: var(--ink);
+      border: 1px solid rgba(25, 42, 86, 0.08);
+      box-shadow: 0 6px 18px -18px rgba(12, 20, 40, 0.55);
       position: relative;
+      transition: transform .18s ease, box-shadow .18s ease;
     }
 
     .preview-card h3 {
-      margin: 0 0 .5rem;
-      font-size: 1.35rem;
-      margin: 0 0 .35rem;
-      font-size: .95rem;
+      margin: 0;
+      font-size: 1.05rem;
       letter-spacing: -.01em;
     }
 
     .preview-card p {
-      margin: 0 0 1rem;
-      margin: 0 0 .75rem;
-      color: rgba(245, 248, 255, .82);
-      font-size: .98rem;
-      font-size: .7rem;
+      margin: .45rem 0 0;
+      color: var(--muted);
+      font-size: .88rem;
     }
 
-    .preview-card::before {
+    .preview-card.depth-1::before {
       counter-increment: milestone;
       content: counter(milestone);
       position: absolute;
-      top: -16px;
-      right: 16px;
       top: -12px;
-      right: 12px;
-      background: rgba(255, 255, 255, .1);
-      width: 48px;
-      height: 48px;
-      border-radius: 16px;
-      width: 36px;
-      height: 36px;
-      border-radius: 12px;
+      right: 14px;
+      background: var(--navy);
+      color: #fff;
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
       display: grid;
       place-items: center;
-      font-weight: 700;
-      font-size: 1.1rem;
-      font-size: .8rem;
+      font-weight: 600;
+      font-size: .9rem;
+      box-shadow: 0 6px 12px -10px rgba(12, 20, 40, 0.6);
     }
 
     .preview-children {
       margin-top: 1rem;
-      margin-top: .75rem;
-      border-left: 2px dashed rgba(255, 255, 255, .3);
-      padding-left: 1.25rem;
-      padding-left: .9rem;
+      border-left: 1px dashed rgba(25, 42, 86, 0.2);
+      padding-left: 1rem;
       display: grid;
-      gap: 1rem;
       gap: .75rem;
     }
 
-    .preview-children .preview-card {
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.15));
-      color: #fff;
-      box-shadow: none;
+    .preview-card.depth-1 {
+      padding-right: 2.4rem;
+    }
+
+    .preview-card.depth-2 {
+      background: rgba(25, 42, 86, 0.03);
+    }
+
+    .preview-card.depth-3 {
+      background: rgba(25, 42, 86, 0.025);
+    }
+
+    .preview-card.depth-4,
+    .preview-card.depth-5,
+    .preview-card.depth-6 {
+      background: rgba(25, 42, 86, 0.02);
+    }
+
+    .preview-card.collapsed {
+      cursor: pointer;
+    }
+
+    .preview-card.collapsed:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px -20px rgba(12, 20, 40, 0.55);
+    }
+
+    .preview-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .75rem;
+    }
+
+    .preview-meta {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      font-size: .75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .preview-toggle {
+      appearance: none;
+      border: 1px solid rgba(25, 42, 86, 0.18);
+      background: rgba(25, 42, 86, 0.05);
+      border-radius: 999px;
+      padding: .25rem .6rem;
+      font-size: .72rem;
+      color: var(--navy);
+      cursor: pointer;
+      transition: background .15s ease, border-color .15s ease;
+    }
+
+    .preview-toggle:hover {
+      background: rgba(25, 42, 86, 0.1);
+      border-color: rgba(25, 42, 86, 0.26);
+    }
+
+    .preview-count {
+      background: rgba(25, 42, 86, 0.08);
+      padding: .15rem .5rem;
+      border-radius: 999px;
+    }
+
+    .preview-card.collapsed .preview-toggle::after {
+      content: ' ▾';
+    }
+
+    .preview-card.expanded .preview-toggle::after {
+      content: ' ▴';
     }
 
     .status {
       margin-top: .75rem;
-      font-size: .9rem;
-      margin-top: .55rem;
-      font-size: .65rem;
+      font-size: .85rem;
       color: var(--muted);
       min-height: 1.2rem;
     }
@@ -420,42 +443,6 @@
 
     .hidden-input {
       display: none;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    body.hide-help #editorHelp {
-      display: none;
-    }
-
-    body.hide-help .toolbar {
-      margin-top: 0;
-    }
-
-    body.hide-preview main {
-      grid-template-columns: minmax(320px, 1fr);
-    }
-
-    body.hide-preview section[aria-labelledby="preview-heading"] {
-      display: none;
-    }
-
-    body.hide-preview #previewInfo {
-      display: none;
-    }
-
-    body.hide-editor main {
-      grid-template-columns: minmax(320px, 1fr);
-    }
-
-    body.hide-editor section[aria-labelledby="editor-heading"] {
-      display: none;
-    }
-
-    body.hide-editor.hide-preview main {
-      grid-template-columns: minmax(320px, 1fr);
     }
 
     @media (max-width: 1024px) {
@@ -469,13 +456,14 @@
 
       .panel {
         max-height: none;
-        height: auto;
       }
     }
   </style>
 </head>
 <body>
   <header>
+    <div class="title">Wise Productions — Critical Client Flow</div>
+    <button class="btn" id="back">← Back</button>
     <div>
       <h1>Critical Client Flow (CCF) — Editor</h1>
       <p>Design and maintain your milestones, sub stages, and deep-dive sub steps with full control.</p>
@@ -484,27 +472,43 @@
       <label for="panelSplit">Layout Balance</label>
       <input type="range" id="panelSplit" min="30" max="70" value="55" />
       <span id="panelSplitValue">55% / 45%</span>
-      <div class="control-group" role="group" aria-label="Layout balance">
-        <label for="panelSplit">Layout</label>
-        <input type="range" id="panelSplit" min="30" max="70" value="55" />
-        <span id="panelSplitValue">55% / 45%</span>
-      </div>
-      <div class="control-group" role="group" aria-label="Editor zoom">
-        <label for="editorScale">Editor</label>
-        <input type="range" id="editorScale" min="70" max="150" value="100" step="5" />
-        <span id="editorScaleValue">100%</span>
-      </div>
-      <div class="control-group" role="group" aria-label="Preview zoom">
-        <label for="previewScale">Preview</label>
-        <input type="range" id="previewScale" min="70" max="150" value="100" step="5" />
-        <span id="previewScaleValue">100%</span>
-      </div>
-      <button type="button" class="ghost-btn" id="toggleHelp" aria-pressed="false">❔ Hide Help</button>
-      <button type="button" class="ghost-btn" id="toggleEditor" aria-pressed="false">🧩 Hide Editor</button>
-      <button type="button" class="ghost-btn" id="togglePreview" aria-pressed="false">👁 Hide Preview</button>
     </div>
   </header>
 
+  <div class="canvas" id="canvas">
+    <svg id="svg" viewBox="0 0 2000 4000" preserveAspectRatio="xMidYMin">
+      <defs>
+        <!-- Elegant slim arrow -->
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#555"></path>
+        </marker>
+
+        <!-- Gradients navy → rose -->
+        <linearGradient id="grad0" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#192a56"/>
+          <stop offset="100%" stop-color="#2e3c6a"/>
+        </linearGradient>
+        <linearGradient id="grad1" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#2e3c6a"/>
+          <stop offset="100%" stop-color="#4c4d77"/>
+        </linearGradient>
+        <linearGradient id="grad2" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#4c4d77"/>
+          <stop offset="100%" stop-color="#6b5c7e"/>
+        </linearGradient>
+        <linearGradient id="grad3" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#6b5c7e"/>
+          <stop offset="100%" stop-color="#876683"/>
+        </linearGradient>
+        <linearGradient id="grad4" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#876683"/>
+          <stop offset="100%" stop-color="#9e768f"/>
+        </linearGradient>
+      </defs>
+      <g id="edges"></g>
+      <g id="nodes"></g>
+    </svg>
+  </div>
   <main>
     <section class="panel" aria-labelledby="editor-heading">
       <div class="toolbar">
@@ -515,7 +519,6 @@
         <input type="file" id="importFile" class="hidden-input" accept="application/json" />
       </div>
       <div class="info">
-      <div class="info" id="editorHelp">
         <strong>How it works</strong>
         <ul>
           <li>Milestone is the highest level. Add nested sub stages and steps up to six layers deep.</li>
@@ -526,19 +529,14 @@
       </div>
       <h2 id="editor-heading">Structure</h2>
       <div class="scroll" id="editor"></div>
-      <div class="scroll">
-        <div id="editor" class="scaled editor-scaled"></div>
-      </div>
       <div class="status" id="status"></div>
     </section>
 
     <section class="panel" aria-labelledby="preview-heading">
       <h2 id="preview-heading">Live Preview</h2>
       <p class="info" style="margin-top:0">This preview updates instantly, showing how clients experience your process across milestones and nested stages.</p>
-      <p class="info" id="previewInfo" style="margin-top:0">This preview updates instantly, showing how clients experience your process across milestones and nested stages.</p>
       <div class="scroll">
         <div id="preview" class="preview"></div>
-        <div id="preview" class="preview scaled preview-scaled"></div>
       </div>
     </section>
   </main>
@@ -550,9 +548,44 @@
   </template>
 
   <script>
+    const milestones = [
+      { id:'enquiry', title:'Enquiry received & logged', substeps:[
+        'Capture via web, email or phone',
+        'Log in CRM/Opsync',
+        'Auto-acknowledge receipt'
+      ]},
+      { id:'qualify', title:'Qualification', substeps:[
+        'Clarify scope, budget, dates, venue',
+        'Tiering (T1/T2/T3)',
+        'Assign provisional owner'
+      ]},
+      { id:'proposal', title:'Proposal / Quote sent', substeps:[
+        'Estimate crew, kit, logistics',
+        'Price build + GP check',
+        'Proposal issued with expiry'
+      ]},
+      { id:'approval', title:'Approval & Deposit', substeps:[
+        'Contract + T&Cs issued',
+        'PO or e-signature captured',
+        'Deposit/payment confirmed'
+      ]},
+      { id:'planning', title:'Pre-production & Planning', substeps:[
+        'Assign PM & create plan',
+        'Design sign-off & HOD review',
+        'Crew, logistics, kit prep scheduled'
+      ]},
+      { id:'delivery', title:'Event Delivery', substeps:[
+        'Warehouse prep & QA checks',
+        'Load-in → show → load-out',
+        'On-site sign-offs captured'
+      ]},
+      { id:'wrap', title:'Post-event wrap → END', substeps:[
+        'Crew & client feedback captured',
+        'Final invoice issued and paid',
+        'Retrospective stored'
+      ]}
     const MAX_DEPTH = 6;
     const STORAGE_KEY = 'ccf-editor-data-v1';
-    const PREFERENCES_KEY = 'ccf-editor-preferences-v1';
     const previewState = {
       expanded: new Set()
     };
@@ -578,7 +611,31 @@
                 id: createId(),
                 title: 'Conduct Discovery Session',
                 description: 'Capture goals, constraints, and success metrics.',
-@@ -437,101 +535,176 @@
+                children: []
+              }
+            ]
+          },
+          {
+            id: createId(),
+            title: 'Needs Assessment',
+            description: 'Translate discovery output into solution requirements.',
+            children: []
+          }
+        ]
+      },
+      {
+        id: createId(),
+        title: 'Solution Design',
+        description: 'Craft the recommended approach and validate it internally.',
+        children: [
+          {
+            id: createId(),
+            title: 'Storyboard Experience',
+            description: 'Build an end-to-end walkthrough for the client journey.',
+            children: []
+          },
+          {
+            id: createId(),
             title: 'Internal Review',
             description: 'Stress-test logistics, staffing, and budget feasibility.',
             children: []
@@ -587,6 +644,51 @@
       }
     ];
 
+    const svg=document.getElementById('svg');
+    const gNodes=document.getElementById('nodes');
+    const gEdges=document.getElementById('edges');
+    const backBtn=document.getElementById('back');
+    const canvasEl=document.getElementById('canvas');
+
+    function clear(){gNodes.innerHTML='';gEdges.innerHTML='';}
+
+    function drawFlow(items){
+      clear();
+      const NODE_W=800, SPACING=200;
+      const centerX = 1000 - NODE_W/2;
+      let y = 200;
+      items.forEach((s,i)=>{
+        const lineCount=s.substeps.length+1;
+        const NODE_H=140+(lineCount*40);
+
+        const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+        g.setAttribute('data-id',s.id);
+        g.setAttribute('class','node');
+
+        const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
+        rect.setAttribute('x',centerX);
+        rect.setAttribute('y',y);
+        rect.setAttribute('width',NODE_W);
+        rect.setAttribute('height',NODE_H);
+        rect.setAttribute('fill',`url(#grad${Math.min(i,4)})`);
+
+        const label=document.createElementNS('http://www.w3.org/2000/svg','text');
+        label.setAttribute('x',centerX+NODE_W/2);
+        label.setAttribute('y',y+50);
+        label.setAttribute('class','label');
+        label.textContent=s.title;
+
+        g.appendChild(rect);
+        g.appendChild(label);
+
+        s.substeps.forEach((st,idx)=>{
+          const sub=document.createElementNS('http://www.w3.org/2000/svg','text');
+          sub.setAttribute('x',centerX+NODE_W/2);
+          sub.setAttribute('y',y+110+(idx*36));
+          sub.setAttribute('class','subtext');
+          sub.textContent='• '+st;
+          g.appendChild(sub);
+        });
     function createId() {
       if (typeof crypto !== 'undefined' && crypto.randomUUID) {
         return crypto.randomUUID();
@@ -594,6 +696,7 @@
       return 'id-' + Math.random().toString(36).slice(2, 9);
     }
 
+        gNodes.appendChild(g);
     const editorEl = document.getElementById('editor');
     const previewEl = document.getElementById('preview');
     const statusEl = document.getElementById('status');
@@ -604,19 +707,13 @@
     const importFileInput = document.getElementById('importFile');
     const panelSplitInput = document.getElementById('panelSplit');
     const panelSplitValue = document.getElementById('panelSplitValue');
-    const toggleHelpBtn = document.getElementById('toggleHelp');
-    const toggleEditorBtn = document.getElementById('toggleEditor');
-    const togglePreviewBtn = document.getElementById('togglePreview');
-    const editorScaleInput = document.getElementById('editorScale');
-    const editorScaleValue = document.getElementById('editorScaleValue');
-    const previewScaleInput = document.getElementById('previewScale');
-    const previewScaleValue = document.getElementById('previewScaleValue');
     const emptyTemplate = document.getElementById('emptyState');
 
-    const preferences = loadPreferences();
-    applyScale('editor', preferences.editorScale, true);
-    applyScale('preview', preferences.previewScale, true);
-
+        if(i<items.length-1){
+          const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+          path.setAttribute('d',`M ${centerX+NODE_W/2} ${y+NODE_H} L ${centerX+NODE_W/2} ${y+NODE_H+SPACING}`);
+          path.setAttribute('class','edge');
+          gEdges.appendChild(path);
     let flow = loadFromStorage();
     updatePanelSplit(Number(panelSplitInput?.value || 55));
     renderAll();
@@ -632,44 +729,6 @@
     importFileInput.addEventListener('change', handleImport);
     panelSplitInput?.addEventListener('input', event => {
       updatePanelSplit(Number(event.target.value));
-    });
-
-    editorScaleInput?.addEventListener('input', event => {
-      applyScale('editor', Number(event.target.value) / 100);
-    });
-
-    previewScaleInput?.addEventListener('input', event => {
-      applyScale('preview', Number(event.target.value) / 100);
-    });
-
-    toggleHelpBtn?.addEventListener('click', () => {
-      const active = document.body.classList.toggle('hide-help');
-      toggleHelpBtn.setAttribute('aria-pressed', active);
-      toggleHelpBtn.textContent = active ? '❔ Show Help' : '❔ Hide Help';
-    });
-
-    toggleEditorBtn?.addEventListener('click', () => {
-      const active = document.body.classList.toggle('hide-editor');
-      toggleEditorBtn.setAttribute('aria-pressed', active);
-      toggleEditorBtn.textContent = active ? '🧩 Show Editor' : '🧩 Hide Editor';
-      if (document.body.classList.contains('hide-editor') && document.body.classList.contains('hide-preview')) {
-        document.body.classList.remove('hide-preview');
-        togglePreviewBtn?.setAttribute('aria-pressed', 'false');
-        if (togglePreviewBtn) togglePreviewBtn.textContent = '👁 Hide Preview';
-      }
-      syncPanelSplitControl();
-    });
-
-    togglePreviewBtn?.addEventListener('click', () => {
-      const active = document.body.classList.toggle('hide-preview');
-      togglePreviewBtn.setAttribute('aria-pressed', active);
-      togglePreviewBtn.textContent = active ? '👁 Show Preview' : '👁 Hide Preview';
-      if (document.body.classList.contains('hide-editor') && document.body.classList.contains('hide-preview')) {
-        document.body.classList.remove('hide-editor');
-        toggleEditorBtn?.setAttribute('aria-pressed', 'false');
-        if (toggleEditorBtn) toggleEditorBtn.textContent = '🧩 Hide Editor';
-      }
-      syncPanelSplitControl();
     });
 
     function createNode(title = 'New Step', description = '') {
@@ -696,24 +755,6 @@
       return structuredClone(defaultFlow);
     }
 
-    function loadPreferences() {
-      try {
-        const stored = localStorage.getItem(PREFERENCES_KEY);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (parsed && typeof parsed === 'object') {
-            return {
-              editorScale: clampScale(Number(parsed.editorScale)),
-              previewScale: clampScale(Number(parsed.previewScale))
-            };
-          }
-        }
-      } catch (error) {
-        console.warn('Failed to parse stored preferences, using defaults.', error);
-      }
-      return { editorScale: 1, previewScale: 1 };
-    }
-
     function persist() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(flow));
@@ -722,14 +763,7 @@
       }
     }
 
-    function savePreferences() {
-      try {
-        localStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences));
-      } catch (error) {
-        console.error('Unable to persist preferences', error);
-      }
-    }
-
+        y += NODE_H + SPACING;
     function renderAll(announce = false) {
       renderEditor();
       renderPreview();
@@ -752,10 +786,168 @@
       editorEl.appendChild(list);
     }
 
+    let currentLevel='overview';
+    function showOverview(){
+      currentLevel='overview';
+      backBtn.style.display='none';
+      drawFlow(milestones);
+      resetView();
+      // smooth scroll to top
+      canvasEl.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function showSubsteps(id){
+      const m=milestones.find(x=>x.id===id);
+      if(!m) return;
+      currentLevel=id;
+      backBtn.style.display='inline-block';
+      clear();
+      const NODE_W=800,NODE_H=220,SPACING=150;
+      const centerX=1000-NODE_W/2;
+      let y=200;
+      m.substeps.forEach((s,i)=>{
+        const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+        g.setAttribute('data-id',s);
+        g.setAttribute('class','node');
+
+        const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
+        rect.setAttribute('x',centerX);
+        rect.setAttribute('y',y);
+        rect.setAttribute('width',NODE_W);
+        rect.setAttribute('height',NODE_H);
+        rect.setAttribute('fill',`url(#grad${Math.min(i,4)})`);
+
+        const label=document.createElementNS('http://www.w3.org/2000/svg','text');
+        label.setAttribute('x',centerX+NODE_W/2);
+        label.setAttribute('y',y+NODE_H/2);
+        label.setAttribute('class','label');
+        label.textContent=s;
+
+        g.appendChild(rect);
+        g.appendChild(label);
+        gNodes.appendChild(g);
+
+        if(i<m.substeps.length-1){
+          const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+          path.setAttribute('d',`M ${centerX+NODE_W/2} ${y+NODE_H} L ${centerX+NODE_W/2} ${y+NODE_H+SPACING}`);
+          path.setAttribute('class','edge');
+          gEdges.appendChild(path);
     function buildEditorNode(node, depth, parentArray, index) {
       const wrapper = document.createElement('div');
       wrapper.className = `editor-node depth-${depth}`;
-@@ -629,50 +802,78 @@
+      wrapper.dataset.id = node.id;
+
+      const fields = document.createElement('div');
+      fields.className = 'node-fields';
+
+      const titleLabel = document.createElement('label');
+      titleLabel.textContent = 'Title';
+      const titleInput = document.createElement('input');
+      titleInput.type = 'text';
+      titleInput.value = node.title;
+      titleInput.placeholder = 'Describe this step';
+      titleInput.addEventListener('input', () => {
+        node.title = titleInput.value;
+        renderPreview();
+        persist();
+      });
+      titleLabel.appendChild(titleInput);
+
+      const descriptionLabel = document.createElement('label');
+      descriptionLabel.textContent = 'Description (optional)';
+      const descriptionInput = document.createElement('textarea');
+      descriptionInput.value = node.description || '';
+      descriptionInput.placeholder = 'Add clarifying details, owners, or exit criteria.';
+      descriptionInput.addEventListener('input', () => {
+        node.description = descriptionInput.value;
+        renderPreview();
+        persist();
+      });
+      descriptionLabel.appendChild(descriptionInput);
+
+      fields.append(titleLabel, descriptionLabel);
+
+      const actions = document.createElement('div');
+      actions.className = 'node-actions';
+
+      const addChildBtn = document.createElement('button');
+      addChildBtn.type = 'button';
+      addChildBtn.textContent = '➕ Add Sub-step';
+      addChildBtn.addEventListener('click', () => {
+        node.children.push(createNode(`New ${depth >= 1 ? 'Sub-step' : 'Item'}`));
+        previewState.expanded.add(node.id);
+        renderAll(true);
+      });
+      if (depth >= MAX_DEPTH) {
+        addChildBtn.disabled = true;
+        addChildBtn.title = `Maximum depth of ${MAX_DEPTH} reached`;
+      }
+
+      const moveUpBtn = document.createElement('button');
+      moveUpBtn.type = 'button';
+      moveUpBtn.textContent = '⬆️ Move Up';
+      moveUpBtn.addEventListener('click', () => {
+        if (index > 0) {
+          moveNode(parentArray, index, index - 1);
+          renderAll();
+        }
+        y+=NODE_H+SPACING;
+      });
+      resetView();
+      // smooth scroll to top
+      canvasEl.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Hover highlight
+    gNodes.addEventListener('mouseover',e=>{
+      const g=e.target.closest('g[data-id]');
+      if(!g) return;
+      gNodes.querySelectorAll('g').forEach(node=>{
+        if(node===g){node.classList.remove('dimmed');}
+        else{node.classList.add('dimmed');}
+      if (index === 0) moveUpBtn.disabled = true;
+
+      const moveDownBtn = document.createElement('button');
+      moveDownBtn.type = 'button';
+      moveDownBtn.textContent = '⬇️ Move Down';
+      moveDownBtn.addEventListener('click', () => {
+        if (index < parentArray.length - 1) {
+          moveNode(parentArray, index, index + 1);
+          renderAll();
+        }
+      });
+    });
+    gNodes.addEventListener('mouseout',()=>{gNodes.querySelectorAll('g').forEach(node=>node.classList.remove('dimmed'));});
+    gNodes.addEventListener('click',e=>{
+      const g=e.target.closest('g[data-id]');
+      if(!g) return;
+      const id=g.getAttribute('data-id');
+      if(currentLevel==='overview') showSubsteps(id);
+    });
+    backBtn.addEventListener('click',showOverview);
+      if (index === parentArray.length - 1) moveDownBtn.disabled = true;
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.type = 'button';
+      deleteBtn.textContent = '🗑️ Remove';
+      deleteBtn.classList.add('ghost-btn');
+      deleteBtn.addEventListener('click', () => {
+        const shouldDelete = confirm('Remove this item and all nested steps?');
+        if (shouldDelete) {
+          collapseBranch(node);
+          parentArray.splice(index, 1);
+          renderAll(true);
+        }
+      });
+
+      actions.append(addChildBtn, moveUpBtn, moveDownBtn, deleteBtn);
+      fields.appendChild(actions);
+
+      wrapper.appendChild(fields);
+
+      if (node.children && node.children.length) {
+        const childrenContainer = document.createElement('div');
+        childrenContainer.className = 'node-children';
         node.children.forEach((child, childIndex) => {
           childrenContainer.appendChild(buildEditorNode(child, depth + 1, node.children, childIndex));
         });
@@ -779,34 +971,6 @@
       flow.forEach((node, index) => {
         previewEl.appendChild(buildPreviewNode(node, 1, `${index + 1}`));
       });
-    }
-
-    function clampScale(value) {
-      if (!Number.isFinite(value)) return 1;
-      return Math.min(1.5, Math.max(0.7, value));
-    }
-
-    function applyScale(target, value, skipPersist = false) {
-      const clamped = clampScale(value);
-      const percent = Math.round(clamped * 100);
-      if (target === 'editor') {
-        document.documentElement.style.setProperty('--editor-scale', clamped);
-        if (editorScaleValue) editorScaleValue.textContent = `${percent}%`;
-        if (editorScaleInput && Number(editorScaleInput.value) !== percent) {
-          editorScaleInput.value = String(percent);
-        }
-        preferences.editorScale = clamped;
-      } else if (target === 'preview') {
-        document.documentElement.style.setProperty('--preview-scale', clamped);
-        if (previewScaleValue) previewScaleValue.textContent = `${percent}%`;
-        if (previewScaleInput && Number(previewScaleInput.value) !== percent) {
-          previewScaleInput.value = String(percent);
-        }
-        preferences.previewScale = clamped;
-      }
-      if (!skipPersist) {
-        savePreferences();
-      }
     }
 
     function buildPreviewNode(node, depth, numbering) {
@@ -834,7 +998,134 @@
         meta.className = 'preview-meta';
 
         const count = document.createElement('span');
-@@ -801,44 +1002,58 @@
+        count.className = 'preview-count';
+        const label = depth === 1 ? 'sub stage' : 'step';
+        const total = node.children.length;
+        count.textContent = `${total} ${label}${total !== 1 ? 's' : ''}`;
+        meta.appendChild(count);
+
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = 'preview-toggle';
+        toggle.textContent = isExpanded ? 'Hide details' : 'Show details';
+        toggle.addEventListener('click', event => {
+          event.stopPropagation();
+          togglePreviewNode(node.id);
+        });
+        meta.appendChild(toggle);
+        header.appendChild(meta);
+
+        if (!isExpanded) {
+          card.addEventListener('click', () => {
+            togglePreviewNode(node.id);
+          });
+        }
+      }
+
+    // view reset
+    let view={x:0,y:0,w:2000,h:4000};
+    function applyView(){svg.setAttribute('viewBox',`${view.x} ${view.y} ${view.w} ${view.h}`)}
+    function resetView(){view={x:0,y:0,w:2000,h:4000};applyView();}
+    applyView();
+      card.appendChild(header);
+
+    showOverview();
+      if (node.description) {
+        const description = document.createElement('p');
+        description.textContent = node.description;
+        card.appendChild(description);
+      }
+
+      if (hasChildren && isExpanded) {
+        const childWrapper = document.createElement('div');
+        childWrapper.className = 'preview-children';
+        node.children.forEach((child, index) => {
+          const childNumber = numbering ? `${numbering}.${index + 1}` : `${index + 1}`;
+          childWrapper.appendChild(buildPreviewNode(child, depth + 1, childNumber));
+        });
+        card.appendChild(childWrapper);
+      }
+
+      return card;
+    }
+
+    async function saveToDataverse() {
+      const payload = {
+        name: 'Critical Client Flow',
+        updatedAt: new Date().toISOString(),
+        milestones: flow
+      };
+
+      flashStatus('Saving to Dataverse…', '');
+      try {
+        if (window.DATAVERSE_ENDPOINT) {
+          const response = await fetch(window.DATAVERSE_ENDPOINT, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+        } else {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(flow));
+        }
+        flashStatus('Saved successfully. Dataverse payload ready.', 'success');
+      } catch (error) {
+        console.error(error);
+        flashStatus('Failed to save. Check the console for details.', 'error');
+      }
+    }
+
+    function downloadJson() {
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        milestones: flow
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'critical-client-flow.json';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      flashStatus('Exported JSON downloaded.', 'success');
+    }
+
+    async function handleImport(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        if (!parsed || !Array.isArray(parsed.milestones || parsed)) {
+          throw new Error('Invalid structure. Expecting { milestones: [] } or an array.');
+        }
+        flow = Array.isArray(parsed) ? parsed : parsed.milestones;
+        previewState.expanded.clear();
+        normalizeIds(flow);
+        renderAll(true);
+        flashStatus('JSON imported successfully.', 'success');
+      } catch (error) {
+        console.error('Import failed', error);
+        flashStatus('Import failed. Please verify the file format.', 'error');
+      } finally {
+        importFileInput.value = '';
+      }
+    }
+
+    function normalizeIds(nodes) {
+      nodes.forEach(node => {
+        if (!node.id) node.id = createId();
+        if (!node.children) node.children = [];
+        if (Array.isArray(node.children)) {
+          normalizeIds(node.children);
+        }
+      });
     }
 
     function collapseBranch(node) {
@@ -861,22 +1152,7 @@
       document.documentElement.style.setProperty('--preview-fr', `${previewShare}fr`);
       if (panelSplitValue) {
         panelSplitValue.textContent = `${clamped}% / ${previewShare}%`;
-        if (document.body.classList.contains('hide-preview')) {
-          panelSplitValue.textContent = 'Editor only';
-        } else if (document.body.classList.contains('hide-editor')) {
-          panelSplitValue.textContent = 'Preview only';
-        } else {
-          panelSplitValue.textContent = `${clamped}% / ${previewShare}%`;
-        }
       }
-    }
-
-    function syncPanelSplitControl() {
-      const disableSlider = document.body.classList.contains('hide-preview') || document.body.classList.contains('hide-editor');
-      if (panelSplitInput) {
-        panelSplitInput.disabled = disableSlider;
-      }
-      updatePanelSplit(Number(panelSplitInput?.value || 55));
     }
 
     function flashStatus(message, type) {
