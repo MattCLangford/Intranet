@@ -14,6 +14,8 @@
       --border: #e0e4ef;
       --ink: #1f2933;
       --muted: #61708b;
+      --editor-fr: 55fr;
+      --preview-fr: 45fr;
     }
 
     * {
@@ -38,6 +40,7 @@
       flex-wrap: wrap;
       align-items: center;
       gap: 1rem;
+      justify-content: space-between;
       position: sticky;
       top: 0;
       z-index: 20;
@@ -56,12 +59,42 @@
       font-size: .95rem;
     }
 
+    .layout-controls {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      font-size: .85rem;
+      color: var(--muted);
+      background: rgba(25, 42, 86, 0.06);
+      padding: .6rem .8rem;
+      border-radius: 999px;
+      border: 1px solid rgba(25, 42, 86, 0.08);
+      flex-wrap: wrap;
+    }
+
+    .layout-controls label {
+      font-weight: 600;
+      color: var(--navy);
+      font-size: .8rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .layout-controls input[type="range"] {
+      accent-color: var(--navy);
+      width: 140px;
+    }
+
+    .layout-controls span {
+      font-variant-numeric: tabular-nums;
+    }
+
     main {
       flex: 1;
       padding: clamp(1rem, 2vw, 2.5rem);
       display: grid;
       gap: clamp(1.5rem, 2vw, 2.5rem);
-      grid-template-columns: minmax(320px, 1.1fr) minmax(320px, 1fr);
+      grid-template-columns: minmax(320px, var(--editor-fr)) minmax(320px, var(--preview-fr));
       align-items: start;
     }
 
@@ -283,6 +316,10 @@
     }
 
     @media (max-width: 1024px) {
+      header {
+        justify-content: flex-start;
+      }
+
       main {
         grid-template-columns: 1fr;
       }
@@ -298,6 +335,11 @@
     <div>
       <h1>Critical Client Flow (CCF) — Editor</h1>
       <p>Design and maintain your milestones, sub stages, and deep-dive sub steps with full control.</p>
+    </div>
+    <div class="layout-controls">
+      <label for="panelSplit">Layout Balance</label>
+      <input type="range" id="panelSplit" min="30" max="70" value="55" />
+      <span id="panelSplitValue">55% / 45%</span>
     </div>
   </header>
 
@@ -342,6 +384,9 @@
   <script>
     const MAX_DEPTH = 6;
     const STORAGE_KEY = 'ccf-editor-data-v1';
+    const previewState = {
+      expanded: new Set()
+    };
 
     const defaultFlow = [
       {
@@ -412,9 +457,12 @@
     const exportBtn = document.getElementById('exportJson');
     const importBtn = document.getElementById('importJson');
     const importFileInput = document.getElementById('importFile');
+    const panelSplitInput = document.getElementById('panelSplit');
+    const panelSplitValue = document.getElementById('panelSplitValue');
     const emptyTemplate = document.getElementById('emptyState');
 
     let flow = loadFromStorage();
+    updatePanelSplit(Number(panelSplitInput?.value || 55));
     renderAll();
 
     addRootBtn.addEventListener('click', () => {
@@ -426,6 +474,9 @@
     exportBtn.addEventListener('click', downloadJson);
     importBtn.addEventListener('click', () => importFileInput.click());
     importFileInput.addEventListener('change', handleImport);
+    panelSplitInput?.addEventListener('input', event => {
+      updatePanelSplit(Number(event.target.value));
+    });
 
     function createNode(title = 'New Step', description = '') {
       return {
@@ -524,6 +575,7 @@
       addChildBtn.textContent = '➕ Add Sub-step';
       addChildBtn.addEventListener('click', () => {
         node.children.push(createNode(`New ${depth >= 1 ? 'Sub-step' : 'Item'}`));
+        previewState.expanded.add(node.id);
         renderAll(true);
       });
       if (depth >= MAX_DEPTH) {
@@ -560,6 +612,7 @@
       deleteBtn.addEventListener('click', () => {
         const shouldDelete = confirm('Remove this item and all nested steps?');
         if (shouldDelete) {
+          collapseBranch(node);
           parentArray.splice(index, 1);
           renderAll(true);
         }
@@ -600,11 +653,54 @@
 
     function buildPreviewNode(node, depth, numbering) {
       const card = document.createElement('article');
-      card.className = 'preview-card';
+      card.className = `preview-card depth-${depth}`;
+
+      const hasChildren = node.children && node.children.length;
+      const isExpanded = hasChildren && previewState.expanded.has(node.id);
+      if (hasChildren && !isExpanded) {
+        card.classList.add('collapsed');
+      }
+      if (hasChildren && isExpanded) {
+        card.classList.add('expanded');
+      }
+
+      const header = document.createElement('div');
+      header.className = 'preview-card-header';
 
       const title = document.createElement('h3');
       title.textContent = numbering ? `${numbering} — ${node.title}` : node.title;
-      card.appendChild(title);
+      header.appendChild(title);
+
+      if (hasChildren) {
+        const meta = document.createElement('div');
+        meta.className = 'preview-meta';
+
+        const count = document.createElement('span');
+        count.className = 'preview-count';
+        const label = depth === 1 ? 'sub stage' : 'step';
+        const total = node.children.length;
+        count.textContent = `${total} ${label}${total !== 1 ? 's' : ''}`;
+        meta.appendChild(count);
+
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = 'preview-toggle';
+        toggle.textContent = isExpanded ? 'Hide details' : 'Show details';
+        toggle.addEventListener('click', event => {
+          event.stopPropagation();
+          togglePreviewNode(node.id);
+        });
+        meta.appendChild(toggle);
+        header.appendChild(meta);
+
+        if (!isExpanded) {
+          card.addEventListener('click', () => {
+            togglePreviewNode(node.id);
+          });
+        }
+      }
+
+      card.appendChild(header);
 
       if (node.description) {
         const description = document.createElement('p');
@@ -612,7 +708,7 @@
         card.appendChild(description);
       }
 
-      if (node.children && node.children.length) {
+      if (hasChildren && isExpanded) {
         const childWrapper = document.createElement('div');
         childWrapper.className = 'preview-children';
         node.children.forEach((child, index) => {
@@ -682,6 +778,7 @@
           throw new Error('Invalid structure. Expecting { milestones: [] } or an array.');
         }
         flow = Array.isArray(parsed) ? parsed : parsed.milestones;
+        previewState.expanded.clear();
         normalizeIds(flow);
         renderAll(true);
         flashStatus('JSON imported successfully.', 'success');
@@ -701,6 +798,33 @@
           normalizeIds(node.children);
         }
       });
+    }
+
+    function collapseBranch(node) {
+      previewState.expanded.delete(node.id);
+      if (node.children) {
+        node.children.forEach(child => collapseBranch(child));
+      }
+    }
+
+    function togglePreviewNode(id) {
+      if (previewState.expanded.has(id)) {
+        previewState.expanded.delete(id);
+      } else {
+        previewState.expanded.add(id);
+      }
+      renderPreview();
+    }
+
+    function updatePanelSplit(value) {
+      if (!Number.isFinite(value)) return;
+      const clamped = Math.min(70, Math.max(30, value));
+      const previewShare = 100 - clamped;
+      document.documentElement.style.setProperty('--editor-fr', `${clamped}fr`);
+      document.documentElement.style.setProperty('--preview-fr', `${previewShare}fr`);
+      if (panelSplitValue) {
+        panelSplitValue.textContent = `${clamped}% / ${previewShare}%`;
+      }
     }
 
     function flashStatus(message, type) {
