@@ -16,6 +16,8 @@
       --muted: #61708b;
       --editor-fr: 55fr;
       --preview-fr: 45fr;
+      --editor-scale: 1;
+      --preview-scale: 1;
     }
 
     html {
@@ -78,12 +80,22 @@
       flex-wrap: wrap;
     }
 
-    .layout-controls label {
+    .layout-controls .control-group {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      background: rgba(255, 255, 255, .4);
+      padding: .25rem .5rem;
+      border-radius: 999px;
+    }
+
+    .layout-controls .control-group label {
       font-weight: 600;
       color: var(--navy);
       font-size: .6rem;
       text-transform: uppercase;
       letter-spacing: .06em;
+      white-space: nowrap;
     }
 
     .layout-controls input[type="range"] {
@@ -91,8 +103,9 @@
       width: 120px;
     }
 
-    .layout-controls span {
+    .layout-controls .control-group span {
       font-variant-numeric: tabular-nums;
+      color: var(--muted);
     }
 
     .layout-controls button {
@@ -132,6 +145,18 @@
       overflow: auto;
       padding-right: .25rem;
       flex: 1;
+    }
+
+    .scaled {
+      transform-origin: top left;
+    }
+
+    .editor-scaled {
+      transform: scale(var(--editor-scale));
+    }
+
+    .preview-scaled {
+      transform: scale(var(--preview-scale));
     }
 
     .toolbar {
@@ -385,9 +410,21 @@
       <p>Design and maintain your milestones, sub stages, and deep-dive sub steps with full control.</p>
     </div>
     <div class="layout-controls">
-      <label for="panelSplit">Layout Balance</label>
-      <input type="range" id="panelSplit" min="30" max="70" value="55" />
-      <span id="panelSplitValue">55% / 45%</span>
+      <div class="control-group" role="group" aria-label="Layout balance">
+        <label for="panelSplit">Layout</label>
+        <input type="range" id="panelSplit" min="30" max="70" value="55" />
+        <span id="panelSplitValue">55% / 45%</span>
+      </div>
+      <div class="control-group" role="group" aria-label="Editor zoom">
+        <label for="editorScale">Editor</label>
+        <input type="range" id="editorScale" min="70" max="150" value="100" step="5" />
+        <span id="editorScaleValue">100%</span>
+      </div>
+      <div class="control-group" role="group" aria-label="Preview zoom">
+        <label for="previewScale">Preview</label>
+        <input type="range" id="previewScale" min="70" max="150" value="100" step="5" />
+        <span id="previewScaleValue">100%</span>
+      </div>
       <button type="button" class="ghost-btn" id="toggleHelp" aria-pressed="false">❔ Hide Help</button>
       <button type="button" class="ghost-btn" id="toggleEditor" aria-pressed="false">🧩 Hide Editor</button>
       <button type="button" class="ghost-btn" id="togglePreview" aria-pressed="false">👁 Hide Preview</button>
@@ -413,7 +450,9 @@
         </ul>
       </div>
       <h2 id="editor-heading">Structure</h2>
-      <div class="scroll" id="editor"></div>
+      <div class="scroll">
+        <div id="editor" class="scaled editor-scaled"></div>
+      </div>
       <div class="status" id="status"></div>
     </section>
 
@@ -421,7 +460,7 @@
       <h2 id="preview-heading">Live Preview</h2>
       <p class="info" id="previewInfo" style="margin-top:0">This preview updates instantly, showing how clients experience your process across milestones and nested stages.</p>
       <div class="scroll">
-        <div id="preview" class="preview"></div>
+        <div id="preview" class="preview scaled preview-scaled"></div>
       </div>
     </section>
   </main>
@@ -435,6 +474,7 @@
   <script>
     const MAX_DEPTH = 6;
     const STORAGE_KEY = 'ccf-editor-data-v1';
+    const PREFERENCES_KEY = 'ccf-editor-preferences-v1';
     const previewState = {
       expanded: new Set()
     };
@@ -508,16 +548,32 @@
     const exportBtn = document.getElementById('exportJson');
     const importBtn = document.getElementById('importJson');
     const importFileInput = document.getElementById('importFile');
-    const panelSplitInput = document.getElementById('panelSplit');
-    const panelSplitValue = document.getElementById('panelSplitValue');
-    const toggleHelpBtn = document.getElementById('toggleHelp');
-    const toggleEditorBtn = document.getElementById('toggleEditor');
-    const togglePreviewBtn = document.getElementById('togglePreview');
     const emptyTemplate = document.getElementById('emptyState');
 
-    let flow = loadFromStorage();
-    updatePanelSplit(Number(panelSplitInput?.value || 55));
+    const panelSplitInput = document.getElementById('panelSplit');
+    const panelSplitValue = document.getElementById('panelSplitValue');
+    const editorScaleInput = document.getElementById('editorScale');
+    const editorScaleValue = document.getElementById('editorScaleValue');
+    const previewScaleInput = document.getElementById('previewScale');
+    const previewScaleValue = document.getElementById('previewScaleValue');
+
+    let flow = loadFlow();
+
     renderAll();
+
+    function loadFlow() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) return JSON.parse(stored);
+      } catch (e) {
+        console.warn('Failed to parse stored data', e);
+      }
+      return defaultFlow;
+    }
+
+    function persist() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(flow));
+    }
 
     addRootBtn.addEventListener('click', () => {
       flow.push(createNode('New Milestone'));
@@ -528,78 +584,59 @@
     exportBtn.addEventListener('click', downloadJson);
     importBtn.addEventListener('click', () => importFileInput.click());
     importFileInput.addEventListener('change', handleImport);
-    panelSplitInput?.addEventListener('input', event => {
-      updatePanelSplit(Number(event.target.value));
+
+    panelSplitInput.addEventListener('input', () => {
+      updatePanelSplit(Number(panelSplitInput.value));
+      persistPreferences();
     });
 
-    toggleHelpBtn?.addEventListener('click', () => {
-      const active = document.body.classList.toggle('hide-help');
-      toggleHelpBtn.setAttribute('aria-pressed', active);
-      toggleHelpBtn.textContent = active ? '❔ Show Help' : '❔ Hide Help';
+    editorScaleInput.addEventListener('input', () => {
+      const scale = Number(editorScaleInput.value) / 100;
+      document.documentElement.style.setProperty('--editor-scale', scale);
+      editorScaleValue.textContent = `${editorScaleInput.value}%`;
+      persistPreferences();
     });
 
-    toggleEditorBtn?.addEventListener('click', () => {
-      const active = document.body.classList.toggle('hide-editor');
-      toggleEditorBtn.setAttribute('aria-pressed', active);
-      toggleEditorBtn.textContent = active ? '🧩 Show Editor' : '🧩 Hide Editor';
-      if (document.body.classList.contains('hide-editor') && document.body.classList.contains('hide-preview')) {
-        document.body.classList.remove('hide-preview');
-        togglePreviewBtn?.setAttribute('aria-pressed', 'false');
-        if (togglePreviewBtn) togglePreviewBtn.textContent = '👁 Hide Preview';
-      }
-      syncPanelSplitControl();
+    previewScaleInput.addEventListener('input', () => {
+      const scale = Number(previewScaleInput.value) / 100;
+      document.documentElement.style.setProperty('--preview-scale', scale);
+      previewScaleValue.textContent = `${previewScaleInput.value}%`;
+      persistPreferences();
     });
 
-    togglePreviewBtn?.addEventListener('click', () => {
-      const active = document.body.classList.toggle('hide-preview');
-      togglePreviewBtn.setAttribute('aria-pressed', active);
-      togglePreviewBtn.textContent = active ? '👁 Show Preview' : '👁 Hide Preview';
-      if (document.body.classList.contains('hide-editor') && document.body.classList.contains('hide-preview')) {
-        document.body.classList.remove('hide-editor');
-        toggleEditorBtn?.setAttribute('aria-pressed', 'false');
-        if (toggleEditorBtn) toggleEditorBtn.textContent = '🧩 Hide Editor';
-      }
-      syncPanelSplitControl();
+    const toggleHelpBtn = document.getElementById('toggleHelp');
+    toggleHelpBtn.addEventListener('click', () => {
+      document.body.classList.toggle('hide-help');
+      toggleHelpBtn.textContent = document.body.classList.contains('hide-help') ? '❔ Show Help' : '❔ Hide Help';
     });
 
-    function createNode(title = 'New Step', description = '') {
+    const toggleEditorBtn = document.getElementById('toggleEditor');
+    toggleEditorBtn.addEventListener('click', () => {
+      document.body.classList.toggle('hide-editor');
+      toggleEditorBtn.textContent = document.body.classList.contains('hide-editor') ? '🧩 Show Editor' : '🧩 Hide Editor';
+    });
+
+    const togglePreviewBtn = document.getElementById('togglePreview');
+    togglePreviewBtn.addEventListener('click', () => {
+      document.body.classList.toggle('hide-preview');
+      togglePreviewBtn.textContent = document.body.classList.contains('hide-preview') ? '👁 Show Preview' : '👁 Hide Preview';
+    });
+
+    function createNode(title = 'New Item') {
       return {
         id: createId(),
         title,
-        description,
+        description: '',
         children: []
       };
     }
 
-    function loadFromStorage() {
-      try {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed)) {
-            return parsed;
-          }
-        }
-      } catch (error) {
-        console.warn('Failed to parse stored data, using defaults.', error);
-      }
-      return structuredClone(defaultFlow);
-    }
-
-    function persist() {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(flow));
-      } catch (error) {
-        console.error('Unable to persist data', error);
-      }
-    }
-
-    function renderAll(announce = false) {
+    function renderAll(force = false) {
       renderEditor();
       renderPreview();
       persist();
-      if (announce) {
-        flashStatus('Structure updated.', 'success');
+      if (force) {
+        flashStatus('Updated.', 'success');
       }
     }
 
@@ -609,17 +646,15 @@
         editorEl.append(emptyTemplate.content.cloneNode(true));
         return;
       }
-      const list = document.createElement('div');
       flow.forEach((node, index) => {
-        list.appendChild(buildEditorNode(node, 1, flow, index));
+        editorEl.appendChild(buildEditorNode(node, 1, flow, index));
       });
-      editorEl.appendChild(list);
     }
 
     function buildEditorNode(node, depth, parentArray, index) {
       const wrapper = document.createElement('div');
       wrapper.className = `editor-node depth-${depth}`;
-      wrapper.dataset.id = node.id;
+      wrapper.dataset.label = '';
 
       const fields = document.createElement('div');
       fields.className = 'node-fields';
@@ -629,7 +664,6 @@
       const titleInput = document.createElement('input');
       titleInput.type = 'text';
       titleInput.value = node.title;
-      titleInput.placeholder = 'Describe this step';
       titleInput.addEventListener('input', () => {
         node.title = titleInput.value;
         renderPreview();
@@ -907,22 +941,17 @@
       document.documentElement.style.setProperty('--editor-fr', `${clamped}fr`);
       document.documentElement.style.setProperty('--preview-fr', `${previewShare}fr`);
       if (panelSplitValue) {
-        if (document.body.classList.contains('hide-preview')) {
-          panelSplitValue.textContent = 'Editor only';
-        } else if (document.body.classList.contains('hide-editor')) {
-          panelSplitValue.textContent = 'Preview only';
-        } else {
-          panelSplitValue.textContent = `${clamped}% / ${previewShare}%`;
-        }
+        panelSplitValue.textContent = `${clamped}% / ${previewShare}%`;
       }
     }
 
-    function syncPanelSplitControl() {
-      const disableSlider = document.body.classList.contains('hide-preview') || document.body.classList.contains('hide-editor');
-      if (panelSplitInput) {
-        panelSplitInput.disabled = disableSlider;
-      }
-      updatePanelSplit(Number(panelSplitInput?.value || 55));
+    function persistPreferences() {
+      const prefs = {
+        panelSplit: Number(panelSplitInput.value),
+        editorScale: Number(editorScaleInput.value),
+        previewScale: Number(previewScaleInput.value)
+      };
+      localStorage.setItem(PREFERENCES_KEY, JSON.stringify(prefs));
     }
 
     function flashStatus(message, type) {
