@@ -116,11 +116,12 @@
 
     main {
       flex: 1;
+      min-height: 0;
       padding: clamp(.75rem, 1.5vw, 1.75rem);
       display: grid;
       gap: clamp(1.1rem, 1.5vw, 1.75rem);
       grid-template-columns: minmax(320px, var(--editor-fr)) minmax(320px, var(--preview-fr));
-      align-items: start;
+      align-items: stretch;
     }
 
     .panel {
@@ -129,6 +130,8 @@
       border: 1px solid var(--border);
       box-shadow: 0 10px 24px -24px rgba(26, 34, 56, 0.4);
       padding: clamp(.75rem, 1.2vw, 1.3rem);
+      height: 100%;
+      min-height: 0;
       max-height: calc(100vh - 160px);
       overflow: hidden;
       display: flex;
@@ -142,9 +145,25 @@
     }
 
     .scroll {
-      overflow: auto;
+      overflow-y: auto;
+      overflow-x: hidden;
       padding-right: .25rem;
       flex: 1;
+      min-height: 0;
+    }
+
+    .scaled {
+      transform-origin: top left;
+    }
+
+    .editor-scaled {
+      transform: scale(var(--editor-scale));
+      width: calc(100% / var(--editor-scale));
+    }
+
+    .preview-scaled {
+      transform: scale(var(--preview-scale));
+      width: calc(100% / var(--preview-scale));
     }
 
     .scaled {
@@ -285,6 +304,7 @@
       counter-reset: milestone;
       display: grid;
       gap: .9rem;
+      min-height: calc(100% / var(--preview-scale));
     }
 
     .preview-card {
@@ -398,7 +418,7 @@
       }
 
       .panel {
-        max-height: none;
+        height: auto;
       }
     }
   </style>
@@ -552,12 +572,23 @@
 
     const panelSplitInput = document.getElementById('panelSplit');
     const panelSplitValue = document.getElementById('panelSplitValue');
+    const toggleHelpBtn = document.getElementById('toggleHelp');
+    const toggleEditorBtn = document.getElementById('toggleEditor');
+    const togglePreviewBtn = document.getElementById('togglePreview');
     const editorScaleInput = document.getElementById('editorScale');
     const editorScaleValue = document.getElementById('editorScaleValue');
     const previewScaleInput = document.getElementById('previewScale');
     const previewScaleValue = document.getElementById('previewScaleValue');
+    const emptyTemplate = document.getElementById('emptyState');
 
-    let flow = loadFlow();
+    const preferences = loadPreferences();
+    applyScale('editor', preferences.editorScale, true);
+    applyScale('preview', preferences.previewScale, true);
+
+    let flow = loadFromStorage();
+    updatePanelSplit(Number(panelSplitInput?.value || 55));
+
+    let flowAlt = loadFlow();
 
     renderAll();
 
@@ -590,48 +621,105 @@
       persistPreferences();
     });
 
-    editorScaleInput.addEventListener('input', () => {
-      const scale = Number(editorScaleInput.value) / 100;
-      document.documentElement.style.setProperty('--editor-scale', scale);
-      editorScaleValue.textContent = `${editorScaleInput.value}%`;
+    editorScaleInput?.addEventListener('input', event => {
+      applyScale('editor', Number(event.target.value) / 100);
       persistPreferences();
     });
 
-    previewScaleInput.addEventListener('input', () => {
-      const scale = Number(previewScaleInput.value) / 100;
-      document.documentElement.style.setProperty('--preview-scale', scale);
-      previewScaleValue.textContent = `${previewScaleInput.value}%`;
+    previewScaleInput?.addEventListener('input', event => {
+      applyScale('preview', Number(event.target.value) / 100);
       persistPreferences();
     });
 
-    const toggleHelpBtn = document.getElementById('toggleHelp');
-    toggleHelpBtn.addEventListener('click', () => {
-      document.body.classList.toggle('hide-help');
-      toggleHelpBtn.textContent = document.body.classList.contains('hide-help') ? '❔ Show Help' : '❔ Hide Help';
+    toggleHelpBtn?.addEventListener('click', () => {
+      const active = document.body.classList.toggle('hide-help');
+      toggleHelpBtn.setAttribute('aria-pressed', active);
+      toggleHelpBtn.textContent = active ? '❔ Show Help' : '❔ Hide Help';
     });
 
-    const toggleEditorBtn = document.getElementById('toggleEditor');
-    toggleEditorBtn.addEventListener('click', () => {
-      document.body.classList.toggle('hide-editor');
-      toggleEditorBtn.textContent = document.body.classList.contains('hide-editor') ? '🧩 Show Editor' : '🧩 Hide Editor';
+    toggleEditorBtn?.addEventListener('click', () => {
+      const active = document.body.classList.toggle('hide-editor');
+      toggleEditorBtn.setAttribute('aria-pressed', active);
+      toggleEditorBtn.textContent = active ? '🧩 Show Editor' : '🧩 Hide Editor';
+      if (document.body.classList.contains('hide-editor') && document.body.classList.contains('hide-preview')) {
+        document.body.classList.remove('hide-preview');
+        togglePreviewBtn?.setAttribute('aria-pressed', 'false');
+        if (togglePreviewBtn) togglePreviewBtn.textContent = '👁 Hide Preview';
+      }
+      syncPanelSplitControl();
     });
 
-    const togglePreviewBtn = document.getElementById('togglePreview');
-    togglePreviewBtn.addEventListener('click', () => {
-      document.body.classList.toggle('hide-preview');
-      togglePreviewBtn.textContent = document.body.classList.contains('hide-preview') ? '👁 Show Preview' : '👁 Hide Preview';
+    togglePreviewBtn?.addEventListener('click', () => {
+      const active = document.body.classList.toggle('hide-preview');
+      togglePreviewBtn.setAttribute('aria-pressed', active);
+      togglePreviewBtn.textContent = active ? '👁 Show Preview' : '👁 Hide Preview';
+      if (document.body.classList.contains('hide-editor') && document.body.classList.contains('hide-preview')) {
+        document.body.classList.remove('hide-editor');
+        toggleEditorBtn?.setAttribute('aria-pressed', 'false');
+        if (toggleEditorBtn) toggleEditorBtn.textContent = '🧩 Hide Editor';
+      }
+      syncPanelSplitControl();
     });
 
-    function createNode(title = 'New Item') {
+    function createNode(title = 'New Step', description = '') {
       return {
         id: createId(),
         title,
-        description: '',
+        description,
         children: []
       };
     }
 
-    function renderAll(force = false) {
+    function loadFromStorage() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            return parsed;
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to parse stored data, using defaults.', error);
+      }
+      return structuredClone(defaultFlow);
+    }
+
+    function loadPreferences() {
+      try {
+        const stored = localStorage.getItem(PREFERENCES_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed && typeof parsed === 'object') {
+            return {
+              editorScale: clampScale(Number(parsed.editorScale)),
+              previewScale: clampScale(Number(parsed.previewScale))
+            };
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to parse stored preferences, using defaults.', error);
+      }
+      return { editorScale: 1, previewScale: 1 };
+    }
+
+    function persist() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(flow));
+      } catch (error) {
+        console.error('Unable to persist data', error);
+      }
+    }
+
+    function savePreferences() {
+      try {
+        localStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences));
+      } catch (error) {
+        console.error('Unable to persist preferences', error);
+      }
+    }
+
+    function renderAll(announce = false) {
       renderEditor();
       renderPreview();
       persist();
@@ -767,6 +855,34 @@
       flow.forEach((node, index) => {
         previewEl.appendChild(buildPreviewNode(node, 1, `${index + 1}`));
       });
+    }
+
+    function clampScale(value) {
+      if (!Number.isFinite(value)) return 1;
+      return Math.min(1.5, Math.max(0.7, value));
+    }
+
+    function applyScale(target, value, skipPersist = false) {
+      const clamped = clampScale(value);
+      const percent = Math.round(clamped * 100);
+      if (target === 'editor') {
+        document.documentElement.style.setProperty('--editor-scale', clamped);
+        if (editorScaleValue) editorScaleValue.textContent = `${percent}%`;
+        if (editorScaleInput && Number(editorScaleInput.value) !== percent) {
+          editorScaleInput.value = String(percent);
+        }
+        preferences.editorScale = clamped;
+      } else if (target === 'preview') {
+        document.documentElement.style.setProperty('--preview-scale', clamped);
+        if (previewScaleValue) previewScaleValue.textContent = `${percent}%`;
+        if (previewScaleInput && Number(previewScaleInput.value) !== percent) {
+          previewScaleInput.value = String(percent);
+        }
+        preferences.previewScale = clamped;
+      }
+      if (!skipPersist) {
+        savePreferences();
+      }
     }
 
     function buildPreviewNode(node, depth, numbering) {
@@ -941,8 +1057,22 @@
       document.documentElement.style.setProperty('--editor-fr', `${clamped}fr`);
       document.documentElement.style.setProperty('--preview-fr', `${previewShare}fr`);
       if (panelSplitValue) {
-        panelSplitValue.textContent = `${clamped}% / ${previewShare}%`;
+        if (document.body.classList.contains('hide-preview')) {
+          panelSplitValue.textContent = 'Editor only';
+        } else if (document.body.classList.contains('hide-editor')) {
+          panelSplitValue.textContent = 'Preview only';
+        } else {
+          panelSplitValue.textContent = `${clamped}% / ${previewShare}%`;
+        }
       }
+    }
+
+    function syncPanelSplitControl() {
+      const disableSlider = document.body.classList.contains('hide-preview') || document.body.classList.contains('hide-editor');
+      if (panelSplitInput) {
+        panelSplitInput.disabled = disableSlider;
+      }
+      updatePanelSplit(Number(panelSplitInput?.value || 55));
     }
 
     function persistPreferences() {
