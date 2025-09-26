@@ -32,6 +32,7 @@
       margin: 0;
       background: linear-gradient(180deg, #f4f6fb 0%, #eef1f8 100%);
       color: var(--ink);
+      font: 16px/1.5 "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
       font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
       font-size: 1rem;
       line-height: 1.5;
@@ -43,10 +44,12 @@
     header {
       background: var(--surface);
       border-bottom: 1px solid var(--border);
+      padding: 1.25rem clamp(1.25rem, 2vw, 2rem);
       padding: .9rem clamp(1rem, 2vw, 1.5rem);
       display: flex;
       flex-wrap: wrap;
       align-items: center;
+      gap: 1rem;
       gap: .75rem;
       justify-content: space-between;
       position: sticky;
@@ -55,6 +58,7 @@
     }
 
     header h1 {
+      font-size: clamp(1.4rem, 2vw, 1.8rem);
       font-size: clamp(1.05rem, 1.4vw, 1.25rem);
       margin: 0;
       color: var(--navy);
@@ -64,22 +68,27 @@
     header p {
       margin: 0;
       color: var(--muted);
+      font-size: .95rem;
       font-size: .7rem;
     }
 
     .layout-controls {
       display: flex;
       align-items: center;
+      gap: .5rem;
+      font-size: .85rem;
       gap: .45rem;
       font-size: .65rem;
       color: var(--muted);
       background: rgba(25, 42, 86, 0.06);
+      padding: .6rem .8rem;
       padding: .5rem .7rem;
       border-radius: 999px;
       border: 1px solid rgba(25, 42, 86, 0.08);
       flex-wrap: wrap;
     }
 
+    .layout-controls label {
     .layout-controls .control-group {
       display: inline-flex;
       align-items: center;
@@ -92,6 +101,7 @@
     .layout-controls .control-group label {
       font-weight: 600;
       color: var(--navy);
+      font-size: .8rem;
       font-size: .6rem;
       text-transform: uppercase;
       letter-spacing: .06em;
@@ -100,9 +110,11 @@
 
     .layout-controls input[type="range"] {
       accent-color: var(--navy);
+      width: 140px;
       width: 120px;
     }
 
+    .layout-controls span {
     .layout-controls .control-group span {
       font-variant-numeric: tabular-nums;
       color: var(--muted);
@@ -116,35 +128,44 @@
 
     main {
       flex: 1;
+      padding: clamp(1rem, 2vw, 2.5rem);
       min-height: 0;
       padding: clamp(.75rem, 1.5vw, 1.75rem);
       display: grid;
+      gap: clamp(1.5rem, 2vw, 2.5rem);
       gap: clamp(1.1rem, 1.5vw, 1.75rem);
       grid-template-columns: minmax(320px, var(--editor-fr)) minmax(320px, var(--preview-fr));
+      align-items: start;
       align-items: stretch;
     }
 
     .panel {
       background: var(--surface);
+      border-radius: 16px;
       border-radius: 12px;
       border: 1px solid var(--border);
+      box-shadow: 0 12px 28px -24px rgba(26, 34, 56, 0.4);
+      padding: clamp(1rem, 1.5vw, 1.75rem);
+      max-height: calc(100vh - 160px);
       box-shadow: 0 10px 24px -24px rgba(26, 34, 56, 0.4);
       padding: clamp(.75rem, 1.2vw, 1.3rem);
       height: 100%;
       min-height: 0;
-      max-height: calc(100vh - 160px);
       overflow: hidden;
       display: flex;
       flex-direction: column;
     }
 
     .panel h2 {
+      margin: 0 0 1rem;
+      font-size: 1.2rem;
       margin: 0 0 .75rem;
       font-size: .9rem;
       color: var(--navy);
     }
 
     .scroll {
+      overflow: auto;
       overflow-y: auto;
       overflow-x: hidden;
       padding-right: .25rem;
@@ -166,21 +187,11 @@
       width: calc(100% / var(--preview-scale));
     }
 
-    .scaled {
-      transform-origin: top left;
-    }
-
-    .editor-scaled {
-      transform: scale(var(--editor-scale));
-    }
-
-    .preview-scaled {
-      transform: scale(var(--preview-scale));
-    }
-
     .toolbar {
       display: flex;
       flex-wrap: wrap;
+      gap: .75rem;
+      margin-bottom: 1rem;
       gap: .55rem;
       margin-bottom: .75rem;
     }
@@ -188,6 +199,8 @@
     button, .ghost-btn {
       appearance: none;
       border: none;
+      border-radius: 10px;
+      padding: .55rem .9rem;
       border-radius: 8px;
       padding: .4rem .7rem;
       font: inherit;
@@ -223,6 +236,9 @@
     .editor-node {
       background: rgba(25, 42, 86, 0.04);
       border: 1px solid rgba(25, 42, 86, 0.1);
+      border-radius: 14px;
+      padding: 1rem;
+      margin-bottom: 1rem;
       border-radius: 10px;
       padding: .75rem;
       margin-bottom: .75rem;
@@ -232,10 +248,14 @@
     .editor-node::before {
       content: attr(data-label);
       position: absolute;
+      top: -12px;
+      left: 16px;
       top: -10px;
       left: 12px;
       background: var(--navy);
       color: #fff;
+      font-size: .75rem;
+      padding: .1rem .5rem;
       font-size: .55rem;
       padding: .08rem .4rem;
       border-radius: 999px;
@@ -252,12 +272,14 @@
 
     .node-fields {
       display: grid;
+      gap: .75rem;
       gap: .55rem;
     }
 
     label {
       display: flex;
       flex-direction: column;
+      font-size: .85rem;
       font-size: .6rem;
       color: var(--muted);
       gap: .35rem;
@@ -267,6 +289,7 @@
       font: inherit;
       border-radius: 10px;
       border: 1px solid rgba(25, 42, 86, 0.18);
+      padding: .5rem .65rem;
       padding: .4rem .5rem;
       width: 100%;
       resize: vertical;
@@ -274,28 +297,37 @@
     }
 
     textarea {
+      min-height: 72px;
       min-height: 54px;
     }
 
     .node-actions {
       display: flex;
       flex-wrap: wrap;
+      gap: .5rem;
       gap: .35rem;
     }
 
     .node-children {
+      margin-top: 1rem;
+      padding-left: 1rem;
       margin-top: .75rem;
       padding-left: .75rem;
       border-left: 3px solid rgba(25, 42, 86, 0.15);
       display: grid;
+      gap: 1rem;
       gap: .75rem;
     }
 
     .info {
       background: rgba(25, 42, 86, .08);
+      border-radius: 12px;
+      padding: 1rem;
       border-radius: 10px;
       padding: .75rem;
       color: var(--navy-dark);
+      font-size: .92rem;
+      margin-bottom: 1rem;
       font-size: .62rem;
       margin-bottom: .75rem;
     }
@@ -303,12 +335,15 @@
     .preview {
       counter-reset: milestone;
       display: grid;
+      gap: 1.25rem;
       gap: .9rem;
       min-height: calc(100% / var(--preview-scale));
     }
 
     .preview-card {
       background: linear-gradient(135deg, rgba(25, 42, 86, 0.95), rgba(78, 106, 168, 0.9));
+      border-radius: 20px;
+      padding: 1.5rem;
       border-radius: 15px;
       padding: 1.125rem;
       color: #f9fbff;
@@ -317,14 +352,18 @@
     }
 
     .preview-card h3 {
+      margin: 0 0 .5rem;
+      font-size: 1.35rem;
       margin: 0 0 .35rem;
       font-size: .95rem;
       letter-spacing: -.01em;
     }
 
     .preview-card p {
+      margin: 0 0 1rem;
       margin: 0 0 .75rem;
       color: rgba(245, 248, 255, .82);
+      font-size: .98rem;
       font-size: .7rem;
     }
 
@@ -332,23 +371,32 @@
       counter-increment: milestone;
       content: counter(milestone);
       position: absolute;
+      top: -16px;
+      right: 16px;
       top: -12px;
       right: 12px;
       background: rgba(255, 255, 255, .1);
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
       width: 36px;
       height: 36px;
       border-radius: 12px;
       display: grid;
       place-items: center;
       font-weight: 700;
+      font-size: 1.1rem;
       font-size: .8rem;
     }
 
     .preview-children {
+      margin-top: 1rem;
       margin-top: .75rem;
       border-left: 2px dashed rgba(255, 255, 255, .3);
+      padding-left: 1.25rem;
       padding-left: .9rem;
       display: grid;
+      gap: 1rem;
       gap: .75rem;
     }
 
@@ -359,6 +407,8 @@
     }
 
     .status {
+      margin-top: .75rem;
+      font-size: .9rem;
       margin-top: .55rem;
       font-size: .65rem;
       color: var(--muted);
@@ -418,6 +468,7 @@
       }
 
       .panel {
+        max-height: none;
         height: auto;
       }
     }
@@ -430,6 +481,9 @@
       <p>Design and maintain your milestones, sub stages, and deep-dive sub steps with full control.</p>
     </div>
     <div class="layout-controls">
+      <label for="panelSplit">Layout Balance</label>
+      <input type="range" id="panelSplit" min="30" max="70" value="55" />
+      <span id="panelSplitValue">55% / 45%</span>
       <div class="control-group" role="group" aria-label="Layout balance">
         <label for="panelSplit">Layout</label>
         <input type="range" id="panelSplit" min="30" max="70" value="55" />
@@ -460,6 +514,7 @@
         <button type="button" class="ghost-btn" id="importJson">⬆️ Import JSON</button>
         <input type="file" id="importFile" class="hidden-input" accept="application/json" />
       </div>
+      <div class="info">
       <div class="info" id="editorHelp">
         <strong>How it works</strong>
         <ul>
@@ -470,6 +525,7 @@
         </ul>
       </div>
       <h2 id="editor-heading">Structure</h2>
+      <div class="scroll" id="editor"></div>
       <div class="scroll">
         <div id="editor" class="scaled editor-scaled"></div>
       </div>
@@ -478,8 +534,10 @@
 
     <section class="panel" aria-labelledby="preview-heading">
       <h2 id="preview-heading">Live Preview</h2>
+      <p class="info" style="margin-top:0">This preview updates instantly, showing how clients experience your process across milestones and nested stages.</p>
       <p class="info" id="previewInfo" style="margin-top:0">This preview updates instantly, showing how clients experience your process across milestones and nested stages.</p>
       <div class="scroll">
+        <div id="preview" class="preview"></div>
         <div id="preview" class="preview scaled preview-scaled"></div>
       </div>
     </section>
@@ -520,31 +578,7 @@
                 id: createId(),
                 title: 'Conduct Discovery Session',
                 description: 'Capture goals, constraints, and success metrics.',
-                children: []
-              }
-            ]
-          },
-          {
-            id: createId(),
-            title: 'Needs Assessment',
-            description: 'Translate discovery output into solution requirements.',
-            children: []
-          }
-        ]
-      },
-      {
-        id: createId(),
-        title: 'Solution Design',
-        description: 'Craft the recommended approach and validate it internally.',
-        children: [
-          {
-            id: createId(),
-            title: 'Storyboard Experience',
-            description: 'Build an end-to-end walkthrough for the client journey.',
-            children: []
-          },
-          {
-            id: createId(),
+@@ -437,101 +535,176 @@
             title: 'Internal Review',
             description: 'Stress-test logistics, staffing, and budget feasibility.',
             children: []
@@ -568,8 +602,6 @@
     const exportBtn = document.getElementById('exportJson');
     const importBtn = document.getElementById('importJson');
     const importFileInput = document.getElementById('importFile');
-    const emptyTemplate = document.getElementById('emptyState');
-
     const panelSplitInput = document.getElementById('panelSplit');
     const panelSplitValue = document.getElementById('panelSplitValue');
     const toggleHelpBtn = document.getElementById('toggleHelp');
@@ -587,24 +619,7 @@
 
     let flow = loadFromStorage();
     updatePanelSplit(Number(panelSplitInput?.value || 55));
-
-    let flowAlt = loadFlow();
-
     renderAll();
-
-    function loadFlow() {
-      try {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) return JSON.parse(stored);
-      } catch (e) {
-        console.warn('Failed to parse stored data', e);
-      }
-      return defaultFlow;
-    }
-
-    function persist() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(flow));
-    }
 
     addRootBtn.addEventListener('click', () => {
       flow.push(createNode('New Milestone'));
@@ -615,20 +630,16 @@
     exportBtn.addEventListener('click', downloadJson);
     importBtn.addEventListener('click', () => importFileInput.click());
     importFileInput.addEventListener('change', handleImport);
-
-    panelSplitInput.addEventListener('input', () => {
-      updatePanelSplit(Number(panelSplitInput.value));
-      persistPreferences();
+    panelSplitInput?.addEventListener('input', event => {
+      updatePanelSplit(Number(event.target.value));
     });
 
     editorScaleInput?.addEventListener('input', event => {
       applyScale('editor', Number(event.target.value) / 100);
-      persistPreferences();
     });
 
     previewScaleInput?.addEventListener('input', event => {
       applyScale('preview', Number(event.target.value) / 100);
-      persistPreferences();
     });
 
     toggleHelpBtn?.addEventListener('click', () => {
@@ -723,8 +734,8 @@
       renderEditor();
       renderPreview();
       persist();
-      if (force) {
-        flashStatus('Updated.', 'success');
+      if (announce) {
+        flashStatus('Structure updated.', 'success');
       }
     }
 
@@ -734,104 +745,17 @@
         editorEl.append(emptyTemplate.content.cloneNode(true));
         return;
       }
+      const list = document.createElement('div');
       flow.forEach((node, index) => {
-        editorEl.appendChild(buildEditorNode(node, 1, flow, index));
+        list.appendChild(buildEditorNode(node, 1, flow, index));
       });
+      editorEl.appendChild(list);
     }
 
     function buildEditorNode(node, depth, parentArray, index) {
       const wrapper = document.createElement('div');
       wrapper.className = `editor-node depth-${depth}`;
-      wrapper.dataset.label = '';
-
-      const fields = document.createElement('div');
-      fields.className = 'node-fields';
-
-      const titleLabel = document.createElement('label');
-      titleLabel.textContent = 'Title';
-      const titleInput = document.createElement('input');
-      titleInput.type = 'text';
-      titleInput.value = node.title;
-      titleInput.addEventListener('input', () => {
-        node.title = titleInput.value;
-        renderPreview();
-        persist();
-      });
-      titleLabel.appendChild(titleInput);
-
-      const descriptionLabel = document.createElement('label');
-      descriptionLabel.textContent = 'Description (optional)';
-      const descriptionInput = document.createElement('textarea');
-      descriptionInput.value = node.description || '';
-      descriptionInput.placeholder = 'Add clarifying details, owners, or exit criteria.';
-      descriptionInput.addEventListener('input', () => {
-        node.description = descriptionInput.value;
-        renderPreview();
-        persist();
-      });
-      descriptionLabel.appendChild(descriptionInput);
-
-      fields.append(titleLabel, descriptionLabel);
-
-      const actions = document.createElement('div');
-      actions.className = 'node-actions';
-
-      const addChildBtn = document.createElement('button');
-      addChildBtn.type = 'button';
-      addChildBtn.textContent = '➕ Add Sub-step';
-      addChildBtn.addEventListener('click', () => {
-        node.children.push(createNode(`New ${depth >= 1 ? 'Sub-step' : 'Item'}`));
-        previewState.expanded.add(node.id);
-        renderAll(true);
-      });
-      if (depth >= MAX_DEPTH) {
-        addChildBtn.disabled = true;
-        addChildBtn.title = `Maximum depth of ${MAX_DEPTH} reached`;
-      }
-
-      const moveUpBtn = document.createElement('button');
-      moveUpBtn.type = 'button';
-      moveUpBtn.textContent = '⬆️ Move Up';
-      moveUpBtn.addEventListener('click', () => {
-        if (index > 0) {
-          moveNode(parentArray, index, index - 1);
-          renderAll();
-        }
-      });
-      if (index === 0) moveUpBtn.disabled = true;
-
-      const moveDownBtn = document.createElement('button');
-      moveDownBtn.type = 'button';
-      moveDownBtn.textContent = '⬇️ Move Down';
-      moveDownBtn.addEventListener('click', () => {
-        if (index < parentArray.length - 1) {
-          moveNode(parentArray, index, index + 1);
-          renderAll();
-        }
-      });
-      if (index === parentArray.length - 1) moveDownBtn.disabled = true;
-
-      const deleteBtn = document.createElement('button');
-      deleteBtn.type = 'button';
-      deleteBtn.textContent = '🗑️ Remove';
-      deleteBtn.classList.add('ghost-btn');
-      deleteBtn.addEventListener('click', () => {
-        const shouldDelete = confirm('Remove this item and all nested steps?');
-        if (shouldDelete) {
-          collapseBranch(node);
-          parentArray.splice(index, 1);
-          renderAll(true);
-        }
-      });
-
-      actions.append(addChildBtn, moveUpBtn, moveDownBtn, deleteBtn);
-      fields.appendChild(actions);
-
-      wrapper.appendChild(fields);
-
-      if (node.children && node.children.length) {
-        const childrenContainer = document.createElement('div');
-        childrenContainer.className = 'node-children';
+@@ -629,50 +802,78 @@
         node.children.forEach((child, childIndex) => {
           childrenContainer.appendChild(buildEditorNode(child, depth + 1, node.children, childIndex));
         });
@@ -910,128 +834,7 @@
         meta.className = 'preview-meta';
 
         const count = document.createElement('span');
-        count.className = 'preview-count';
-        const label = depth === 1 ? 'sub stage' : 'step';
-        const total = node.children.length;
-        count.textContent = `${total} ${label}${total !== 1 ? 's' : ''}`;
-        meta.appendChild(count);
-
-        const toggle = document.createElement('button');
-        toggle.type = 'button';
-        toggle.className = 'preview-toggle';
-        toggle.textContent = isExpanded ? 'Hide details' : 'Show details';
-        toggle.addEventListener('click', event => {
-          event.stopPropagation();
-          togglePreviewNode(node.id);
-        });
-        meta.appendChild(toggle);
-        header.appendChild(meta);
-
-        if (!isExpanded) {
-          card.addEventListener('click', () => {
-            togglePreviewNode(node.id);
-          });
-        }
-      }
-
-      card.appendChild(header);
-
-      if (node.description) {
-        const description = document.createElement('p');
-        description.textContent = node.description;
-        card.appendChild(description);
-      }
-
-      if (hasChildren && isExpanded) {
-        const childWrapper = document.createElement('div');
-        childWrapper.className = 'preview-children';
-        node.children.forEach((child, index) => {
-          const childNumber = numbering ? `${numbering}.${index + 1}` : `${index + 1}`;
-          childWrapper.appendChild(buildPreviewNode(child, depth + 1, childNumber));
-        });
-        card.appendChild(childWrapper);
-      }
-
-      return card;
-    }
-
-    async function saveToDataverse() {
-      const payload = {
-        name: 'Critical Client Flow',
-        updatedAt: new Date().toISOString(),
-        milestones: flow
-      };
-
-      flashStatus('Saving to Dataverse…', '');
-      try {
-        if (window.DATAVERSE_ENDPOINT) {
-          const response = await fetch(window.DATAVERSE_ENDPOINT, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-          });
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-          }
-        } else {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(flow));
-        }
-        flashStatus('Saved successfully. Dataverse payload ready.', 'success');
-      } catch (error) {
-        console.error(error);
-        flashStatus('Failed to save. Check the console for details.', 'error');
-      }
-    }
-
-    function downloadJson() {
-      const payload = {
-        exportedAt: new Date().toISOString(),
-        milestones: flow
-      };
-      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'critical-client-flow.json';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      flashStatus('Exported JSON downloaded.', 'success');
-    }
-
-    async function handleImport(event) {
-      const file = event.target.files?.[0];
-      if (!file) return;
-      try {
-        const text = await file.text();
-        const parsed = JSON.parse(text);
-        if (!parsed || !Array.isArray(parsed.milestones || parsed)) {
-          throw new Error('Invalid structure. Expecting { milestones: [] } or an array.');
-        }
-        flow = Array.isArray(parsed) ? parsed : parsed.milestones;
-        previewState.expanded.clear();
-        normalizeIds(flow);
-        renderAll(true);
-        flashStatus('JSON imported successfully.', 'success');
-      } catch (error) {
-        console.error('Import failed', error);
-        flashStatus('Import failed. Please verify the file format.', 'error');
-      } finally {
-        importFileInput.value = '';
-      }
-    }
-
-    function normalizeIds(nodes) {
-      nodes.forEach(node => {
-        if (!node.id) node.id = createId();
-        if (!node.children) node.children = [];
-        if (Array.isArray(node.children)) {
-          normalizeIds(node.children);
-        }
-      });
+@@ -801,44 +1002,58 @@
     }
 
     function collapseBranch(node) {
@@ -1057,6 +860,7 @@
       document.documentElement.style.setProperty('--editor-fr', `${clamped}fr`);
       document.documentElement.style.setProperty('--preview-fr', `${previewShare}fr`);
       if (panelSplitValue) {
+        panelSplitValue.textContent = `${clamped}% / ${previewShare}%`;
         if (document.body.classList.contains('hide-preview')) {
           panelSplitValue.textContent = 'Editor only';
         } else if (document.body.classList.contains('hide-editor')) {
@@ -1073,15 +877,6 @@
         panelSplitInput.disabled = disableSlider;
       }
       updatePanelSplit(Number(panelSplitInput?.value || 55));
-    }
-
-    function persistPreferences() {
-      const prefs = {
-        panelSplit: Number(panelSplitInput.value),
-        editorScale: Number(editorScaleInput.value),
-        previewScale: Number(previewScaleInput.value)
-      };
-      localStorage.setItem(PREFERENCES_KEY, JSON.stringify(prefs));
     }
 
     function flashStatus(message, type) {
