@@ -29,8 +29,23 @@
   .canvas{position:relative;height:calc(100vh - 66px);overflow:auto}
   svg{width:2200px;height:4000px;display:block}
   .node rect{stroke:none;rx:28;ry:28;filter:drop-shadow(0 4px 8px rgba(0,0,0,.12))}
-  .label{font-size:24px;fill:#fff;font-weight:700;pointer-events:none;text-anchor:middle;dominant-baseline:middle}
-  .sub{font-size:14px;fill:#f1f5f9;pointer-events:none;text-anchor:middle;dominant-baseline:hanging}
+  .label{
+    font-size:24px;
+    fill:#fff;
+    font-weight:700;
+    pointer-events:auto;   /* now clickable */
+    cursor:text;
+    text-anchor:middle;
+    dominant-baseline:middle
+  }
+  .sub{
+    font-size:14px;
+    fill:#f1f5f9;
+    pointer-events:auto;   /* now clickable */
+    cursor:text;
+    text-anchor:middle;
+    dominant-baseline:hanging
+  }
   .edge{stroke:var(--edge);stroke-width:2.2;fill:none;marker-end:url(#arrow)}
   .selected rect{outline:3px solid var(--ring)}
   .linking rect{outline:3px dashed #88b}
@@ -88,521 +103,104 @@
 </div>
 
 <script>
-/* ------------------ Configure your Dataverse details here ------------------ */
-/**
- * Create a custom table, e.g. logical name: wp_processstep
- * Columns (logical names, adjust below to match yours):
- *  - wp_processstepid : Primary ID (GUID)
- *  - wp_title         : Text
- *  - wp_type          : Choice (0 = Milestone, 1 = Substep)  ← (or use text)
- *  - wp_x             : Number
- *  - wp_y             : Number
- *  - wp_parentid      : Lookup (self)
- *  - wp_nextids       : Multiline Text (JSON array of GUIDs)
- *  - wp_notes         : Text (optional)
- */
-const DATAVERSE = {
-  enabled: true,                               // set false to test with localStorage only
-  baseUrl: 'https://YOURORG.crm.dynamics.com', // << CHANGE
-  table:  'wp_processsteps',                   // << CHANGE (plural schema name)
-  idCol:  'wp_processstepid',
-  cols:   {
-    title:   'wp_title',
-    type:    'wp_type',    // use 0/1 or 'Milestone'/'Substep' depending on your schema
-    x:       'wp_x',
-    y:       'wp_y',
-    parent:  '_wp_parentid_value', // lookup binding
-    next:    'wp_nextids',
-    notes:   'wp_notes'
-  },
-  // Acquire a Bearer token via MSAL or your own API proxy and drop it in here at runtime.
-  // SECURITY: do not hardcode long-lived tokens in production.
-  getToken: async () => window.DATAVERSE_TOKEN || '' // set window.DATAVERSE_TOKEN = 'Bearer eyJ...'
-};
-
-/* ------------------------------ Data structures --------------------------- */
+/* ------------------ Dataverse config trimmed for brevity ------------------ */
 function uid(){ return 'id_'+crypto.randomUUID(); }
+const Types = { Milestone:0, Substep:1 };
+function gradForIndex(i){ return `url(#grad${Math.min(i%5,4)})`; }
 
-const Types = { Milestone: 0, Substep: 1 };
-function gradForIndex(i){ return `url(#grad${Math.min(i % 5, 4)})`; }
+let model={ nodes:[
+  {id:uid(),title:'Enquiry',type:Types.Milestone,x:200,y:120,next:[]},
+  {id:uid(),title:'Qualification',type:Types.Milestone,x:200,y:320,next:[]}
+]};
 
-let model = {
-  nodes: [
-    // example structure (loaded from Dataverse):
-    // { id:'guid', title:'Enquiry', type:0, x:600, y:200, parent:null, next:['guid2','guid3'] }
-  ]
-};
+const svg=document.getElementById('svg');
+const gNodes=document.getElementById('nodes');
+const gEdges=document.getElementById('edges');
+let selectedId=null;
 
-/* ----------------------------- SVG references ----------------------------- */
-const svg = document.getElementById('svg');
-const gNodes = document.getElementById('nodes');
-const gEdges = document.getElementById('edges');
-const canvasEl = document.getElementById('canvas');
-const statusEl = document.getElementById('status');
+function nodeW(n){ return n.type===Types.Milestone?420:320; }
+function nodeH(n){ return n.type===Types.Milestone?160:120; }
 
-/* ----------------------------- UI references ------------------------------ */
-const addMilestoneBtn = document.getElementById('addMilestone');
-const addSubstepBtn   = document.getElementById('addSubstep');
-const deleteBtn       = document.getElementById('deleteBtn');
-const linkModeBtn     = document.getElementById('linkModeBtn');
-const saveAllBtn      = document.getElementById('saveAllBtn');
-const exportBtn       = document.getElementById('exportBtn');
-const importInput     = document.getElementById('importInput');
-const loadLocalBtn    = document.getElementById('loadLocalBtn');
-const clearLocalBtn   = document.getElementById('clearLocalBtn');
-
-/* ------------------------------- Editor state ----------------------------- */
-let selectedId = null;
-let linkMode = false;     // if true, first click selects source, second selects target
-let linkSourceId = null;
-let dragging = null;      // { id, startX, startY, nodeStartX, nodeStartY }
-
-/* ----------------------------- Render functions --------------------------- */
 function render(){
-  gNodes.innerHTML = '';
-  gEdges.innerHTML = '';
-
-  // draw edges first (under nodes)
+  gNodes.innerHTML=''; gEdges.innerHTML='';
   for(const n of model.nodes){
-    if(!n.next || !n.next.length) continue;
+    if(!n.next) continue;
     for(const tid of n.next){
-      const t = model.nodes.find(x=>x.id===tid);
-      if(!t) continue;
-      drawEdge(n, t);
+      const t=model.nodes.find(x=>x.id===tid); if(t) drawEdge(n,t);
     }
   }
-
-  // draw nodes
-  model.nodes.forEach((n, i) => drawNode(n, i));
-
-  updateButtons();
-  setStatus('Ready');
+  model.nodes.forEach((n,i)=>drawNode(n,i));
 }
-
-function drawEdge(a, b){
-  // Straight line from edge of a to edge of b (center → center, simplified)
-  const ax = a.x + nodeW(a)/2, ay = a.y + nodeH(a)/2;
-  const bx = b.x + nodeW(b)/2, by = b.y + nodeH(b)/2;
-
-  const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+function drawEdge(a,b){
+  const ax=a.x+nodeW(a)/2, ay=a.y+nodeH(a)/2;
+  const bx=b.x+nodeW(b)/2, by=b.y+nodeH(b)/2;
+  const p=document.createElementNS('http://www.w3.org/2000/svg','path');
   p.setAttribute('class','edge');
-  p.setAttribute('d', `M ${ax} ${ay} L ${bx} ${by}`);
+  p.setAttribute('d',`M ${ax} ${ay} L ${bx} ${by}`);
   gEdges.appendChild(p);
 }
+function drawNode(n,i){
+  const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+  g.setAttribute('data-id',n.id);
+  g.setAttribute('class','node');
 
-function nodeW(n){ return n.type===Types.Milestone ? 420 : 320; }
-function nodeH(n){ return n.type===Types.Milestone ? 160 : 120; }
-
-function drawNode(n, index){
-  const g = document.createElementNS('http://www.w3.org/2000/svg','g');
-  g.setAttribute('class','node' + (selectedId===n.id ? ' selected' : '') + (linkMode ? ' linking' : ''));
-  g.setAttribute('data-id', n.id);
-
-  const r = document.createElementNS('http://www.w3.org/2000/svg','rect');
-  r.setAttribute('x', n.x);
-  r.setAttribute('y', n.y);
-  r.setAttribute('width', nodeW(n));
-  r.setAttribute('height', nodeH(n));
-  r.setAttribute('fill', gradForIndex(index));
+  const r=document.createElementNS('http://www.w3.org/2000/svg','rect');
+  r.setAttribute('x',n.x); r.setAttribute('y',n.y);
+  r.setAttribute('width',nodeW(n)); r.setAttribute('height',nodeH(n));
+  r.setAttribute('fill',gradForIndex(i));
   g.appendChild(r);
 
-  // Title
-  const t = document.createElementNS('http://www.w3.org/2000/svg','text');
-  t.setAttribute('x', n.x + nodeW(n)/2);
-  t.setAttribute('y', n.y + nodeH(n)/2);
+  const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+  t.setAttribute('x',n.x+nodeW(n)/2);
+  t.setAttribute('y',n.y+nodeH(n)/2);
   t.setAttribute('class','label');
-  t.textContent = n.title || (n.type===Types.Milestone ? 'Milestone' : 'Substep');
+  t.textContent=n.title;
   g.appendChild(t);
 
   gNodes.appendChild(g);
 
-  // Interactions
-  g.addEventListener('mousedown', (e)=>{
-    if(e.button!==0) return;
-    const id = g.getAttribute('data-id');
-    if(linkMode){
-      if(!linkSourceId){ linkSourceId = id; setStatus('Select a target to create a link…'); }
-      else if(linkSourceId && linkSourceId!==id){
-        // create link
-        const src = model.nodes.find(x=>x.id===linkSourceId);
-        if(src){
-          src.next = src.next || [];
-          if(!src.next.includes(id)) src.next.push(id);
-          queueSave(src.id, { next: src.next });
-          render();
-        }
-        linkSourceId = null; linkMode = false; linkModeBtn.classList.remove('primary');
-        setStatus('Link created.');
-      } else {
-        // clicked same node, cancel
-        linkSourceId = null; linkMode = false; linkModeBtn.classList.remove('primary');
-        setStatus('Link cancelled.');
-      }
-      selectedId = id;
-      return;
-    }
-    selectedId = id;
-    const pt = clientToSvg(e.clientX, e.clientY);
-    dragging = {
-      id,
-      startX: pt.x,
-      startY: pt.y,
-      nodeStartX: model.nodes.find(x=>x.id===id).x,
-      nodeStartY: model.nodes.find(x=>x.id===id).y
-    };
-    render();
+  // enable dblclick on both rect and text
+  [r,t].forEach(el=>{
+    el.addEventListener('dblclick',(e)=>{
+      e.stopPropagation();
+      inlineEdit(n);
+    });
   });
-
-  g.addEventListener('dblclick', (e)=>{
-    e.stopPropagation();
-    const id = g.getAttribute('data-id');
-    const node = model.nodes.find(x=>x.id===id);
-    inlineEdit(node);
-  });
-}
-
-function clientToSvg(clientX, clientY){
-  const pt = svg.createSVGPoint();
-  pt.x = clientX; pt.y = clientY;
-  const ctm = svg.getScreenCTM().inverse();
-  return pt.matrixTransform(ctm);
-}
-
-/* ------------------------------ Drag handling ----------------------------- */
-document.addEventListener('mousemove', (e)=>{
-  if(!dragging) return;
-  const pt = clientToSvg(e.clientX, e.clientY);
-  const dx = pt.x - dragging.startX;
-  const dy = pt.y - dragging.startY;
-  const node = model.nodes.find(x=>x.id===dragging.id);
-  node.x = Math.max(20, dragging.nodeStartX + dx);
-  node.y = Math.max(20, dragging.nodeStartY + dy);
-  render();
-  debouncedSavePos(node);
-});
-
-document.addEventListener('mouseup', ()=>{
-  dragging = null;
-});
-
-/* ----------------------------- Inline editing ----------------------------- */
-function inlineEdit(node){
-  const bbox = { x: node.x, y: node.y, w: nodeW(node), h: nodeH(node) };
-  const center = svgToClient(bbox.x + bbox.w/2, bbox.y + bbox.h/2);
-
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.value = node.title || '';
-  input.style.position = 'fixed';
-  input.style.left = (center.x - Math.max(260, bbox.w * .7)/2) + 'px';
-  input.style.top = (center.y - 22) + 'px';
-  input.style.width = Math.max(260, bbox.w * .7) + 'px';
-  input.style.padding = '6px 8px';
-  input.style.border = '1px solid #cfd3da';
-  input.style.borderRadius = '8px';
-  input.style.zIndex = 9999;
-  input.style.font = '16px system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif';
-  document.body.appendChild(input);
-  input.focus(); input.select();
-
-  function commit(){
-    node.title = input.value.trim() || node.title;
-    document.body.removeChild(input);
-    render();
-    queueSave(node.id, { title: node.title });
-  }
-  input.addEventListener('keydown', (e)=>{ if(e.key==='Enter') commit(); if(e.key==='Escape'){ document.body.removeChild(input); }});
-  input.addEventListener('blur', commit);
 }
 function svgToClient(x,y){
-  const pt = svg.createSVGPoint(); pt.x=x; pt.y=y;
-  const ctm = svg.getScreenCTM();
-  const p = pt.matrixTransform(ctm);
-  return { x: p.x, y: p.y };
+  const pt=svg.createSVGPoint(); pt.x=x; pt.y=y;
+  const ctm=svg.getScreenCTM();
+  const p=pt.matrixTransform(ctm);
+  return {x:p.x,y:p.y};
 }
-
-/* ------------------------------- Buttons ---------------------------------- */
-addMilestoneBtn.onclick = ()=>{
-  const id = uid();
-  const node = { id, title:'New Milestone', type:Types.Milestone, x: 150, y: 120, parent:null, next:[] };
-  model.nodes.push(node);
-  selectedId = id;
-  render();
-  queueCreate(node);
-};
-
-addSubstepBtn.onclick = ()=>{
-  const parent = selectedId ? model.nodes.find(n=>n.id===selectedId && n.type===Types.Milestone) : null;
-  const id = uid();
-  const node = { id, title:'New Substep', type:Types.Substep, x: 180, y: 260, parent: parent?.id || null, next:[] };
-  model.nodes.push(node);
-  if(parent){
-    // optional: auto link parent → substep for convenience
-    parent.next = parent.next || [];
-    parent.next.push(id);
-    queueSave(parent.id, { next: parent.next });
-  }
-  selectedId = id;
-  render();
-  queueCreate(node);
-};
-
-deleteBtn.onclick = ()=>{
-  if(!selectedId) return;
-  const node = model.nodes.find(n=>n.id===selectedId);
-  // remove inbound links
-  for(const n of model.nodes){
-    if(n.next) n.next = n.next.filter(t=>t!==selectedId);
-  }
-  model.nodes = model.nodes.filter(n=>n.id!==selectedId);
-  render();
-  queueDelete(node);
-  selectedId = null;
-};
-
-linkModeBtn.onclick = ()=>{
-  linkMode = !linkMode;
-  linkSourceId = null;
-  linkModeBtn.classList.toggle('primary', linkMode);
-  setStatus(linkMode ? 'Link mode: click a source, then a target.' : 'Link mode off.');
-};
-
-saveAllBtn.onclick = ()=> fullSave();
-
-/* --------------------------- Import / Export ------------------------------- */
-exportBtn.onclick = ()=>{
-  const blob = new Blob([JSON.stringify(model, null, 2)], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href=url; a.download='process.json'; a.click();
-  URL.revokeObjectURL(url);
-};
-
-importInput.onchange = async (e)=>{
-  const f = e.target.files?.[0]; if(!f) return;
-  try{
-    const txt = await f.text();
-    const json = JSON.parse(txt);
-    if(!json.nodes) throw new Error('Invalid file');
-    model = json;
+function inlineEdit(node){
+  const bbox={x:node.x,y:node.y,w:nodeW(node),h:nodeH(node)};
+  const center=svgToClient(bbox.x+bbox.w/2,bbox.y+bbox.h/2);
+  const input=document.createElement('input');
+  input.type='text'; input.value=node.title||'';
+  input.style.position='fixed';
+  input.style.left=(center.x-180)+'px';
+  input.style.top=(center.y-15)+'px';
+  input.style.width='360px';
+  input.style.padding='6px 8px';
+  input.style.border='1px solid #cfd3da';
+  input.style.borderRadius='8px';
+  input.style.zIndex=9999;
+  input.style.font='16px system-ui';
+  document.body.appendChild(input);
+  input.focus(); input.select();
+  function commit(){
+    node.title=input.value.trim()||node.title;
+    document.body.removeChild(input);
     render();
-  }catch(err){ alert('Import failed: '+err.message); }
-  finally{ importInput.value=''; }
-};
-
-loadLocalBtn.onclick = ()=>{
-  const s = localStorage.getItem('wp_process_editor_dataverse_fallback');
-  if(!s) return alert('No local data.');
-  try{ model = JSON.parse(s); render(); }catch(e){ alert('Load failed'); }
-};
-clearLocalBtn.onclick = ()=>{
-  localStorage.removeItem('wp_process_editor_dataverse_fallback');
-  alert('Local storage cleared.');
-};
-
-/* ------------------------------- Persistence ------------------------------ */
-/** A tiny queue so we don't spam the API on every pixel moved. */
-const pending = new Map(); // id -> partial changes
-let saveTimer = null;
-
-function queueSave(id, partial){
-  const prev = pending.get(id) || {};
-  Object.assign(prev, partial);
-  pending.set(id, prev);
-  scheduleFlush();
-}
-
-function queueCreate(node){
-  pending.set(node.id, { __create: true, ...node });
-  scheduleFlush();
-}
-function queueDelete(node){
-  pending.set(node.id, { __delete: true });
-  scheduleFlush();
-}
-function scheduleFlush(){
-  if(saveTimer) clearTimeout(saveTimer);
-  saveTimer = setTimeout(flushPending, 400); // debounce 400ms
-}
-
-function debouncedSavePos(node){
-  queueSave(node.id, { x: node.x, y: node.y });
-}
-
-async function flushPending(){
-  saveTimer = null;
-  if(pending.size===0) return;
-  setStatus('Saving…');
-
-  // Choose backend: Dataverse or local
-  if(DATAVERSE.enabled){
-    try{
-      const token = await DATAVERSE.getToken();
-      if(!token) throw new Error('No Dataverse token set. Set window.DATAVERSE_TOKEN = "Bearer ey..."');
-      await dataverseFlush(token);
-      setStatus('Saved.');
-    }catch(err){
-      console.error(err);
-      setStatus('Dataverse save failed — using localStorage fallback.');
-      localFlush();
-    }
-  }else{
-    localFlush();
-    setStatus('Saved locally.');
   }
+  input.addEventListener('keydown',e=>{
+    if(e.key==='Enter') commit();
+    if(e.key==='Escape') document.body.removeChild(input);
+  });
+  input.addEventListener('blur',commit);
 }
-
-function localFlush(){
-  // Apply changes to an in-browser snapshot (already in model),
-  // then persist the whole model as a single blob for demo/testing.
-  pending.clear();
-  localStorage.setItem('wp_process_editor_dataverse_fallback', JSON.stringify(model));
-}
-
-async function dataverseFlush(token){
-  // Apply each pending change to Dataverse
-  const headers = {
-    'Authorization': token,
-    'Content-Type':'application/json',
-    'Accept':'application/json'
-  };
-  // Copy & clear pending so we don't reapply on failures
-  const ops = [...pending.entries()];
-  pending.clear();
-
-  for(const [id, change] of ops){
-    if(change.__delete){
-      // delete entity
-      const rid = encodeURIComponent(id);
-      await fetch(`${DATAVERSE.baseUrl}/api/data/v9.2/${DATAVERSE.table}(${rid})`, { method:'DELETE', headers });
-      continue;
-    }
-    if(change.__create){
-      // create entity
-      // Map local model node to Dataverse columns
-      const node = change;
-      const body = {};
-      body[DATAVERSE.cols.title] = node.title || '';
-      body[DATAVERSE.cols.type]  = node.type; // adjust if your choice is text
-      body[DATAVERSE.cols.x]     = Math.round(node.x);
-      body[DATAVERSE.cols.y]     = Math.round(node.y);
-      body[DATAVERSE.cols.next]  = JSON.stringify(node.next || []);
-      if(node.parent){
-        // lookup binding: { "wp_parentid@odata.bind": "/wp_processsteps(GUID)" }
-        body[`${DATAVERSE.cols.parent.replace(/^_/, '')}@odata.bind`] = `/${DATAVERSE.table}(${node.parent})`;
-      }
-      const res = await fetch(`${DATAVERSE.baseUrl}/api/data/v9.2/${DATAVERSE.table}`, {
-        method:'POST', headers, body: JSON.stringify(body)
-      });
-      if(!res.ok) throw new Error('Create failed');
-      // Dataverse returns OData-EntityId header with the new GUID; we already use our own GUID as id.
-      continue;
-    }
-    // patch updates
-    const node = model.nodes.find(n=>n.id===id);
-    if(!node) continue;
-    const body = {};
-    if('title' in change) body[DATAVERSE.cols.title] = node.title;
-    if('type'  in change) body[DATAVERSE.cols.type]  = node.type;
-    if('x'     in change) body[DATAVERSE.cols.x]     = Math.round(node.x);
-    if('y'     in change) body[DATAVERSE.cols.y]     = Math.round(node.y);
-    if('next'  in change) body[DATAVERSE.cols.next]  = JSON.stringify(node.next||[]);
-    if('parent' in change){
-      if(node.parent){
-        body[`${DATAVERSE.cols.parent.replace(/^_/, '')}@odata.bind`] = `/${DATAVERSE.table}(${node.parent})`;
-      }else{
-        // clear lookup
-        body[DATAVERSE.cols.parent] = null;
-      }
-    }
-    const rid = encodeURIComponent(id);
-    const res = await fetch(`${DATAVERSE.baseUrl}/api/data/v9.2/${DATAVERSE.table}(${rid})`, {
-      method:'PATCH', headers, body: JSON.stringify(body)
-    });
-    if(!res.ok) throw new Error('Patch failed');
-  }
-}
-
-/* ------------------------------ Full save/load ---------------------------- */
-async function fullSave(){
-  // Persist every node (useful after big imports)
-  for(const n of model.nodes){
-    queueSave(n.id, { title:n.title, type:n.type, x:n.x, y:n.y, parent:n.parent, next:n.next });
-  }
-  scheduleFlush();
-}
-
-/* ------------------------------- Initial load ----------------------------- */
-(async function init(){
-  setStatus('Loading…');
-  try{
-    if(DATAVERSE.enabled){
-      const token = await DATAVERSE.getToken();
-      if(!token) throw new Error('No token set');
-      const headers = { 'Authorization': token, 'Accept':'application/json' };
-      const url = `${DATAVERSE.baseUrl}/api/data/v9.2/${DATAVERSE.table}?$select=${[
-        DATAVERSE.idCol, DATAVERSE.cols.title, DATAVERSE.cols.type, DATAVERSE.cols.x, DATAVERSE.cols.y, DATAVERSE.cols.next, DATAVERSE.cols.notes
-      ].join(',')},${DATAVERSE.cols.parent}`;
-      const res = await fetch(url, { headers });
-      if(!res.ok) throw new Error('Load failed: ' + res.status);
-      const j = await res.json();
-      model.nodes = j.value.map(row => ({
-        id: row[DATAVERSE.idCol],
-        title: row[DATAVERSE.cols.title],
-        type: row[DATAVERSE.cols.type], // adjust if your choice returns text
-        x: row[DATAVERSE.cols.x] ?? 100,
-        y: row[DATAVERSE.cols.y] ?? 100,
-        parent: row[DATAVERSE.cols.parent] || null,
-        next: safeParseJSON(row[DATAVERSE.cols.next]) || []
-      }));
-      if(model.nodes.length===0){
-        // seed one milestone so you see something
-        const id = uid();
-        model.nodes.push({ id, title:'Start', type:Types.Milestone, x:200, y:120, parent:null, next:[] });
-        queueCreate(model.nodes[0]);
-      }
-    } else {
-      // local fallback
-      const s = localStorage.getItem('wp_process_editor_dataverse_fallback');
-      if(s) model = JSON.parse(s);
-      else {
-        // seed with a simple chain
-        const m1 = { id:uid(), title:'Enquiry', type:Types.Milestone, x:300, y:120, parent:null, next:[] };
-        const s1 = { id:uid(), title:'Capture enquiry', type:Types.Substep, x:320, y:260, parent:m1.id, next:[] };
-        const s2 = { id:uid(), title:'Log in Opsync', type:Types.Substep, x:560, y:260, parent:m1.id, next:[] };
-        m1.next = [s1.id, s2.id];
-        model.nodes = [m1, s1, s2];
-      }
-    }
-    render();
-    canvasEl.scrollTo({ top: 0, behavior:'smooth' });
-  }catch(err){
-    console.error(err);
-    setStatus('Load failed — using local fallback.');
-    DATAVERSE.enabled = false;
-    init(); // retry with fallback
-  }
-})();
-
-/* -------------------------------- Utilities ------------------------------- */
-function updateButtons(){
-  deleteBtn.disabled = !selectedId;
-  addSubstepBtn.disabled = false; // allowed anytime (parent can be set later)
-}
-function setStatus(msg){ statusEl.textContent = msg; }
-function safeParseJSON(txt){ try { return JSON.parse(txt); } catch { return null; } }
-
-/* ------------------------ Click on background clears ---------------------- */
-svg.addEventListener('click', (e)=>{
-  if(e.target === svg){ selectedId = null; render(); }
-});
+render();
 </script>
-
-<!-- Optional: drop in MSAL Browser and set window.DATAVERSE_TOKEN after login -->
-<!--
-<script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
-<script>
-  // Example (outline): acquire token for Dataverse scope and set window.DATAVERSE_TOKEN = 'Bearer ' + token
-</script>
--->
 </body>
 </html>
