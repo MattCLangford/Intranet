@@ -19,7 +19,6 @@
   svg{width:2200px;height:4000px;display:block}
   .node rect{stroke:none;rx:28;ry:28;filter:drop-shadow(0 4px 8px rgba(0,0,0,.12))}
   .label{font-size:24px;fill:#fff;font-weight:700;pointer-events:auto;cursor:text;text-anchor:middle;dominant-baseline:middle}
-  .sub{font-size:14px;fill:#f1f5f9;pointer-events:auto;cursor:text;text-anchor:middle;dominant-baseline:hanging}
   .edge{stroke:var(--edge);stroke-width:2.2;fill:none;marker-end:url(#arrow)}
   .selected rect{outline:3px solid var(--ring)}
   .linking rect{outline:3px dashed #88b}
@@ -65,56 +64,43 @@
 </div>
 
 <script>
-/* ------------------------------- Data model ------------------------------- */
-const LS_KEY = 'wp_process_editor_local';
-const Types = { Milestone:0, Substep:1 };
-function uid(){ return 'id_'+crypto.randomUUID(); }
-function gradForIndex(i){ return `url(#grad${Math.min(i%5,4)})`; }
+const LS_KEY='wp_process_editor_local';
+const Types={Milestone:0,Substep:1};
+function uid(){return 'id_'+crypto.randomUUID();}
+function gradForIndex(i){return `url(#grad${Math.min(i%5,4)})`;}
 
-let model = { nodes: [] }; // { id,title,type,x,y,parent?,next:[] }
+let model={nodes:[]};
+let selectedId=null, linkMode=false, linkSourceId=null;
+let dragging=null; // {id,startX,startY,nodeStartX,nodeStartY}
+const gridSize=20;
 
-/* ----------------------------- DOM references ----------------------------- */
-const svg = document.getElementById('svg');
-const gNodes = document.getElementById('nodes');
-const gEdges = document.getElementById('edges');
-const statusEl = document.getElementById('status');
+/* DOM refs */
+const svg=document.getElementById('svg');
+const gNodes=document.getElementById('nodes');
+const gEdges=document.getElementById('edges');
+const statusEl=document.getElementById('status');
+const addMilestoneBtn=document.getElementById('addMilestone');
+const addSubstepBtn=document.getElementById('addSubstep');
+const deleteBtn=document.getElementById('deleteBtn');
+const linkModeBtn=document.getElementById('linkModeBtn');
+const saveAllBtn=document.getElementById('saveAllBtn');
+const exportBtn=document.getElementById('exportBtn');
+const importInput=document.getElementById('importInput');
+const clearLocalBtn=document.getElementById('clearLocalBtn');
 
-const addMilestoneBtn = document.getElementById('addMilestone');
-const addSubstepBtn   = document.getElementById('addSubstep');
-const deleteBtn       = document.getElementById('deleteBtn');
-const linkModeBtn     = document.getElementById('linkModeBtn');
-const saveAllBtn      = document.getElementById('saveAllBtn');
-const exportBtn       = document.getElementById('exportBtn');
-const importInput     = document.getElementById('importInput');
-const clearLocalBtn   = document.getElementById('clearLocalBtn');
-
-/* ------------------------------ Editor state ------------------------------ */
-let selectedId = null;
-let linkMode = false;
-let linkSourceId = null;
-let dragging = null; // { id, startX, startY, nodeStartX, nodeStartY }
-
-/* --------------------------------- Render -------------------------------- */
-function nodeW(n){ return n.type===Types.Milestone ? 420 : 320; }
-function nodeH(n){ return n.type===Types.Milestone ? 160 : 120; }
+/* Render */
+function nodeW(n){return n.type===Types.Milestone?420:320;}
+function nodeH(n){return n.type===Types.Milestone?160:120;}
 
 function render(){
-  gNodes.innerHTML = '';
-  gEdges.innerHTML = '';
-
-  // edges under nodes
+  gNodes.innerHTML=''; gEdges.innerHTML='';
   for(const n of model.nodes){
-    if(!n.next || !n.next.length) continue;
+    if(!n.next) continue;
     for(const tid of n.next){
-      const t = model.nodes.find(x=>x.id===tid);
-      if(t) drawEdge(n, t);
+      const t=model.nodes.find(x=>x.id===tid); if(t) drawEdge(n,t);
     }
   }
-
-  // nodes
-  model.nodes.forEach((n,i)=> drawNode(n,i));
-
-  updateButtons();
+  model.nodes.forEach((n,i)=>drawNode(n,i));
   setStatus('Ready');
 }
 
@@ -122,168 +108,112 @@ function drawEdge(a,b){
   const ax=a.x+nodeW(a)/2, ay=a.y+nodeH(a)/2;
   const bx=b.x+nodeW(b)/2, by=b.y+nodeH(b)/2;
   const p=document.createElementNS('http://www.w3.org/2000/svg','path');
-  p.setAttribute('class','edge');
-  p.setAttribute('d',`M ${ax} ${ay} L ${bx} ${by}`);
+  p.setAttribute('class','edge'); p.setAttribute('d',`M ${ax} ${ay} L ${bx} ${by}`);
   gEdges.appendChild(p);
 }
 
 function drawNode(n,index){
   const g=document.createElementNS('http://www.w3.org/2000/svg','g');
   g.setAttribute('data-id',n.id);
-  g.setAttribute('class','node' + (selectedId===n.id ? ' selected' : '') + (linkMode ? ' linking' : ''));
-
+  g.setAttribute('class','node'+(selectedId===n.id?' selected':'')+(linkMode?' linking':''));
   const r=document.createElementNS('http://www.w3.org/2000/svg','rect');
   r.setAttribute('x',n.x); r.setAttribute('y',n.y);
   r.setAttribute('width',nodeW(n)); r.setAttribute('height',nodeH(n));
   r.setAttribute('fill',gradForIndex(index));
   g.appendChild(r);
-
   const t=document.createElementNS('http://www.w3.org/2000/svg','text');
   t.setAttribute('x',n.x+nodeW(n)/2); t.setAttribute('y',n.y+nodeH(n)/2);
-  t.setAttribute('class','label'); t.textContent=n.title || (n.type===Types.Milestone?'Milestone':'Substep');
+  t.setAttribute('class','label'); t.textContent=n.title||'';
   g.appendChild(t);
-
   gNodes.appendChild(g);
 
-  // Drag & select
   g.addEventListener('mousedown',(e)=>{
     if(e.button!==0) return;
     const id=g.getAttribute('data-id');
     if(linkMode){
-      if(!linkSourceId){ linkSourceId=id; setStatus('Select a target to create a link…'); }
-      else if(linkSourceId && linkSourceId!==id){
+      if(!linkSourceId){linkSourceId=id;setStatus('Select target…');}
+      else if(linkSourceId!==id){
         const src=model.nodes.find(x=>x.id===linkSourceId);
-        src.next=src.next||[];
-        if(!src.next.includes(id)) src.next.push(id);
-        saveLocal(); render(); setStatus('Link created.');
-        linkSourceId=null; linkMode=false; linkModeBtn.classList.remove('primary');
-      } else { linkSourceId=null; linkMode=false; linkModeBtn.classList.remove('primary'); setStatus('Link cancelled.'); }
+        src.next=src.next||[]; if(!src.next.includes(id)) src.next.push(id);
+        saveLocal(); render(); linkSourceId=null; linkMode=false; linkModeBtn.classList.remove('primary'); setStatus('Link created');
+      } else {linkSourceId=null; linkMode=false; linkModeBtn.classList.remove('primary');}
       selectedId=id; return;
     }
     selectedId=id; render();
     const pt=clientToSvg(e.clientX,e.clientY);
-    dragging={ id, startX:pt.x, startY:pt.y, nodeStartX:n.x, nodeStartY:n.y };
+    dragging={id,startX:pt.x,startY:pt.y,nodeStartX:n.x,nodeStartY:n.y};
   });
 
-  // Double-click edit (on rect or text)
   [r,t].forEach(el=>{
-    el.addEventListener('dblclick',(e)=>{
-      e.stopPropagation();
-      inlineEdit(n);
-    });
+    el.addEventListener('dblclick',(e)=>{e.stopPropagation();inlineEdit(n);});
   });
 }
 
-/* ----------------------------- Drag handling ------------------------------ */
+/* Drag */
 document.addEventListener('mousemove',(e)=>{
   if(!dragging) return;
   const pt=clientToSvg(e.clientX,e.clientY);
   const dx=pt.x-dragging.startX, dy=pt.y-dragging.startY;
   const node=model.nodes.find(x=>x.id===dragging.id);
-  node.x=Math.max(20, dragging.nodeStartX+dx);
-  node.y=Math.max(20, dragging.nodeStartY+dy);
+  node.x=dragging.nodeStartX+dx; node.y=dragging.nodeStartY+dy;
   render();
 });
 document.addEventListener('mouseup',()=>{
   if(dragging){
-    saveLocal();
+    // snap to grid
+    const node=model.nodes.find(x=>x.id===dragging.id);
+    node.x=Math.round(node.x/gridSize)*gridSize;
+    node.y=Math.round(node.y/gridSize)*gridSize;
+    saveLocal(); render();
     dragging=null;
   }
 });
 
-/* --------------------------- Inline text editing -------------------------- */
+/* Inline edit */
 function inlineEdit(node){
   const bbox={x:node.x,y:node.y,w:nodeW(node),h:nodeH(node)};
   const center=svgToClient(bbox.x+bbox.w/2,bbox.y+bbox.h/2);
   const input=document.createElement('input');
   input.type='text'; input.value=node.title||'';
-  input.style.position='fixed';
-  input.style.left=(center.x-180)+'px';
-  input.style.top=(center.y-16)+'px';
-  input.style.width='360px';
-  input.style.padding='6px 8px';
-  input.style.border='1px solid #cfd3da';
-  input.style.borderRadius='8px';
-  input.style.zIndex=9999;
-  input.style.font='16px system-ui';
-  document.body.appendChild(input);
-  input.focus(); input.select();
-  const commit=()=>{
-    node.title=input.value.trim()||node.title;
-    document.body.removeChild(input);
-    saveLocal(); render();
-  };
-  input.addEventListener('keydown',e=>{ if(e.key==='Enter') commit(); if(e.key==='Escape') document.body.removeChild(input);});
+  input.style.position='fixed'; input.style.left=(center.x-180)+'px'; input.style.top=(center.y-16)+'px';
+  input.style.width='360px'; input.style.padding='6px 8px'; input.style.border='1px solid #cfd3da'; input.style.borderRadius='8px'; input.style.zIndex=9999; input.style.font='16px system-ui';
+  document.body.appendChild(input); input.focus(); input.select();
+  const commit=()=>{node.title=input.value.trim()||node.title;document.body.removeChild(input);saveLocal();render();};
+  input.addEventListener('keydown',e=>{if(e.key==='Enter')commit();if(e.key==='Escape')document.body.removeChild(input);});
   input.addEventListener('blur',commit);
 }
 
-/* ------------------------------- Buttons ---------------------------------- */
+/* Buttons */
 addMilestoneBtn.onclick=()=>{
-  const id=uid();
-  model.nodes.push({id,title:'New Milestone',type:Types.Milestone,x:150,y:100+(model.nodes.length*60),parent:null,next:[]});
+  const id=uid(); model.nodes.push({id,title:'New Milestone',type:Types.Milestone,x:100,y:100+(model.nodes.length*60),next:[]});
   selectedId=id; saveLocal(); render();
 };
 addSubstepBtn.onclick=()=>{
-  const parent = selectedId && model.nodes.find(n=>n.id===selectedId && n.type===Types.Milestone);
-  const id=uid();
-  const node={id,title:'New Substep',type:Types.Substep,x: (parent?parent.x+40:200), y:(parent?parent.y+200:250), parent: parent?.id||null, next:[]};
-  model.nodes.push(node);
-  if(parent){ parent.next = parent.next || []; parent.next.push(id); }
+  const parent=selectedId && model.nodes.find(n=>n.id===selectedId&&n.type===Types.Milestone);
+  const id=uid(); const node={id,title:'New Substep',type:Types.Substep,x:(parent?parent.x+40:200),y:(parent?parent.y+200:250),parent:parent?.id||null,next:[]};
+  model.nodes.push(node); if(parent){parent.next.push(id);}
   selectedId=id; saveLocal(); render();
 };
 deleteBtn.onclick=()=>{
   if(!selectedId) return;
-  for(const n of model.nodes){ if(n.next) n.next=n.next.filter(t=>t!==selectedId); }
-  model.nodes = model.nodes.filter(n=>n.id!==selectedId);
-  selectedId=null; saveLocal(); render();
+  for(const n of model.nodes){if(n.next) n.next=n.next.filter(t=>t!==selectedId);}
+  model.nodes=model.nodes.filter(n=>n.id!==selectedId); selectedId=null; saveLocal(); render();
 };
-linkModeBtn.onclick=()=>{
-  linkMode=!linkMode; linkSourceId=null;
-  linkModeBtn.classList.toggle('primary',linkMode);
-  setStatus(linkMode?'Link mode: click source then target.':'Link mode off.');
-};
-saveAllBtn.onclick=()=>{ saveLocal(); setStatus('Saved.'); };
+linkModeBtn.onclick=()=>{linkMode=!linkMode;linkSourceId=null;linkModeBtn.classList.toggle('primary',linkMode);};
+saveAllBtn.onclick=()=>{saveLocal();setStatus('Saved.');};
+exportBtn.onclick=()=>{const blob=new Blob([JSON.stringify(model,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='process.json';a.click();URL.revokeObjectURL(url);};
+importInput.onchange=async(e)=>{const f=e.target.files?.[0];if(!f)return;try{const txt=await f.text();const json=JSON.parse(txt);if(!json.nodes)throw new Error('Invalid file');model=json;saveLocal();render();}catch(err){alert('Import failed:'+err.message);}finally{importInput.value='';}};
+clearLocalBtn.onclick=()=>{localStorage.removeItem(LS_KEY);setStatus('Local data cleared.');};
 
-/* ---------------------------- Import / Export ----------------------------- */
-exportBtn.onclick=()=>{
-  const blob=new Blob([JSON.stringify(model,null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(blob); const a=document.createElement('a');
-  a.href=url; a.download='process.json'; a.click(); URL.revokeObjectURL(url);
-};
-importInput.onchange=async (e)=>{
-  const f=e.target.files?.[0]; if(!f) return;
-  try{
-    const txt=await f.text(); const json=JSON.parse(txt);
-    if(!json.nodes) throw new Error('Invalid file: missing nodes');
-    model=json; selectedId=null; saveLocal(); render();
-  }catch(err){ alert('Import failed: '+err.message);}
-  finally{ importInput.value=''; }
-};
-clearLocalBtn.onclick=()=>{
-  localStorage.removeItem(LS_KEY); setStatus('Local data cleared.');
-};
+/* Utils */
+function clientToSvg(cx,cy){const pt=svg.createSVGPoint();pt.x=cx;pt.y=cy;return pt.matrixTransform(svg.getScreenCTM().inverse());}
+function svgToClient(x,y){const pt=svg.createSVGPoint();pt.x=x;pt.y=y;const p=pt.matrixTransform(svg.getScreenCTM());return{x:p.x,y:p.y};}
+function setStatus(m){statusEl.textContent=m;}
+function loadLocal(){const s=localStorage.getItem(LS_KEY);if(s){try{model=JSON.parse(s);}catch{}}if(!model.nodes||model.nodes.length===0){const m1={id:uid(),title:'Enquiry',type:Types.Milestone,x:260,y:120,next:[]};model.nodes=[m1];}}
+function saveLocal(){localStorage.setItem(LS_KEY,JSON.stringify(model));}
 
-/* ------------------------------- Utilities -------------------------------- */
-function clientToSvg(cx,cy){ const pt=svg.createSVGPoint(); pt.x=cx; pt.y=cy; const inv=svg.getScreenCTM().inverse(); return pt.matrixTransform(inv); }
-function svgToClient(x,y){ const pt=svg.createSVGPoint(); pt.x=x; pt.y=y; const m=svg.getScreenCTM(); const p=pt.matrixTransform(m); return {x:p.x,y:p.y}; }
-function setStatus(m){ statusEl.textContent=m; }
-function loadLocal(){
-  const s=localStorage.getItem(LS_KEY);
-  if(s){ try{ model=JSON.parse(s); }catch{ /* ignore */ } }
-  if(!model.nodes || model.nodes.length===0){
-    // Seed starter flow
-    const m1={id:uid(),title:'Enquiry',type:Types.Milestone,x:260,y:120,parent:null,next:[]};
-    const m2={id:uid(),title:'Qualification',type:Types.Milestone,x:260,y:360,parent:null,next:[]};
-    const s1={id:uid(),title:'Capture enquiry',type:Types.Substep,x:560,y:120,parent:m1.id,next:[]};
-    const s2={id:uid(),title:'Log in Opsync',type:Types.Substep,x:760,y:120,parent:m1.id,next:[]};
-    m1.next=[s1.id,s2.id]; model.nodes=[m1,m2,s1,s2];
-  }
-}
-function saveLocal(){ localStorage.setItem(LS_KEY, JSON.stringify(model)); }
-
-/* ------------------------------- Init ------------------------------------ */
-loadLocal();
-render();
+/* Init */
+loadLocal(); render();
 </script>
 </body>
 </html>
