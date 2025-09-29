@@ -10,12 +10,11 @@
       color-scheme: light;
       --navy: #192a56;
       --navy-dark: #101d3d;
+      --rose: #f8f0ff;
       --surface: #ffffff;
-      --border: #d8deec;
+      --border: #e0e4ef;
       --ink: #1f2933;
-      --muted: #5b6780;
-      --editor-fr: 55fr;
-      --preview-fr: 45fr;
+      --muted: #61708b;
     }
 
     * {
@@ -27,9 +26,9 @@
       background: #fdfdfc; /* Paper white */
       color: #333;
       font: 16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Arial, sans-serif;
-      background: linear-gradient(180deg, #f5f7fb 0%, #eff2f9 100%);
+      background: linear-gradient(180deg, #f4f6fb 0%, #eef1f8 100%);
       color: var(--ink);
-      font: 15px/1.5 "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+      font: 16px/1.5 "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -40,21 +39,24 @@
       padding: .8rem 1rem;
       background: var(--surface);
       border-bottom: 1px solid var(--border);
-      padding: 1rem clamp(1.25rem, 3vw, 1.75rem);
+      padding: 1.25rem clamp(1.25rem, 2vw, 2rem);
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       gap: 1rem;
       border-bottom: 1px solid #ddd;
-      justify-content: space-between;
       position: sticky;
       top: 0;
       z-index: 10;
       z-index: 20;
     }
+    .title {
+      font-weight: 700;
+      font-size: 1.4rem;
+      color: #192a56;
 
     header h1 {
-      font-size: clamp(1.3rem, 2vw, 1.65rem);
+      font-size: clamp(1.4rem, 2vw, 1.8rem);
       margin: 0;
       color: var(--navy);
       letter-spacing: -.01em;
@@ -63,82 +65,48 @@
     header p {
       margin: 0;
       color: var(--muted);
-      font-size: .9rem;
-    }
-
-    .layout-controls {
-      display: flex;
-      align-items: center;
-      gap: .5rem;
-      font-size: .85rem;
-      color: var(--muted);
-      background: rgba(25, 42, 86, 0.06);
-      padding: .6rem .8rem;
-      border-radius: 999px;
-      border: 1px solid rgba(25, 42, 86, 0.08);
-      flex-wrap: wrap;
-    }
-
-    .layout-controls label {
-      font-weight: 600;
-      color: var(--navy);
-      font-size: .8rem;
-      text-transform: uppercase;
-      letter-spacing: .06em;
-    }
-
-    .layout-controls input[type="range"] {
-      accent-color: var(--navy);
-      width: 140px;
-    }
-    .title {
-      font-weight: 700;
-      font-size: 1.4rem;
-      color: #192a56;
-
-    .layout-controls span {
-      font-variant-numeric: tabular-nums;
+      font-size: .95rem;
     }
 
     main {
       flex: 1;
-      padding: clamp(.75rem, 2vw, 2rem);
+      padding: clamp(1rem, 2vw, 2.5rem);
       display: grid;
-      gap: clamp(1rem, 2vw, 1.75rem);
-      grid-template-columns: minmax(300px, var(--editor-fr)) minmax(280px, var(--preview-fr));
+      gap: clamp(1.5rem, 2vw, 2.5rem);
+      grid-template-columns: minmax(320px, 1.1fr) minmax(320px, 1fr);
       align-items: start;
     }
 
     .panel {
       background: var(--surface);
-      border-radius: 14px;
+      border-radius: 16px;
       border: 1px solid var(--border);
-      box-shadow: 0 10px 26px -24px rgba(26, 34, 56, 0.45);
-      padding: clamp(.85rem, 1.2vw, 1.4rem);
+      box-shadow: 0 12px 28px -24px rgba(26, 34, 56, 0.4);
+      padding: clamp(1rem, 1.5vw, 1.75rem);
       max-height: calc(100vh - 160px);
       overflow: hidden;
       display: flex;
       flex-direction: column;
     }
-    .btn {
 
     .panel h2 {
-      margin: 0 0 .85rem;
-      font-size: 1.05rem;
+      margin: 0 0 1rem;
+      font-size: 1.2rem;
       color: var(--navy);
     }
+    .btn {
 
     .scroll {
       overflow: auto;
-      padding-right: .2rem;
+      padding-right: .25rem;
       flex: 1;
     }
 
     .toolbar {
       display: flex;
       flex-wrap: wrap;
-      gap: .5rem;
-      margin-bottom: .85rem;
+      gap: .75rem;
+      margin-bottom: 1rem;
     }
 
     button, .ghost-btn {
@@ -149,7 +117,7 @@
       padding: .55rem 1rem;
       border-radius: 6px;
       border-radius: 10px;
-      padding: .45rem .75rem;
+      padding: .55rem .9rem;
       font: inherit;
       font-weight: 600;
       cursor: pointer;
@@ -157,17 +125,17 @@
       transition: transform .12s ease, box-shadow .12s ease;
       display: inline-flex;
       align-items: center;
-      gap: .35rem;
+      gap: .45rem;
       color: var(--surface);
       background: var(--navy);
-      box-shadow: 0 6px 16px -12px rgba(25, 42, 86, .6);
+      box-shadow: 0 6px 18px -10px rgba(25, 42, 86, .7);
     }
+    .canvas {
 
     button:hover:not(:disabled) {
       transform: translateY(-1px);
-      box-shadow: 0 10px 20px -16px rgba(25, 42, 86, .7);
+      box-shadow: 0 10px 22px -14px rgba(25, 42, 86, .7);
     }
-    .canvas {
 
     button:disabled {
       cursor: not-allowed;
@@ -177,17 +145,17 @@
 
     .ghost-btn {
       background: transparent;
-      border: 1px solid rgba(25, 42, 86, .2);
+      border: 1px solid rgba(25, 42, 86, .18);
       color: var(--navy);
       box-shadow: none;
     }
 
     .editor-node {
-      background: rgba(25, 42, 86, 0.035);
+      background: rgba(25, 42, 86, 0.04);
       border: 1px solid rgba(25, 42, 86, 0.1);
-      border-radius: 12px;
-      padding: .85rem;
-      margin-bottom: .85rem;
+      border-radius: 14px;
+      padding: 1rem;
+      margin-bottom: 1rem;
       position: relative;
       height: 90vh;
       overflow-y: auto; /* native scrollbar */
@@ -197,14 +165,14 @@
     .editor-node::before {
       content: attr(data-label);
       position: absolute;
-      top: -11px;
-      left: 14px;
+      top: -12px;
+      left: 16px;
       background: var(--navy);
       color: #fff;
-      font-size: .7rem;
-      padding: .08rem .45rem;
+      font-size: .75rem;
+      padding: .1rem .5rem;
       border-radius: 999px;
-      letter-spacing: .08em;
+      letter-spacing: .06em;
       text-transform: uppercase;
     }
 
@@ -223,7 +191,7 @@
     label {
       display: flex;
       flex-direction: column;
-      font-size: .8rem;
+      font-size: .85rem;
       color: var(--muted);
       gap: .35rem;
     }
@@ -232,7 +200,7 @@
       font: inherit;
       border-radius: 10px;
       border: 1px solid rgba(25, 42, 86, 0.18);
-      padding: .45rem .6rem;
+      padding: .5rem .65rem;
       width: 100%;
       display: block;
     }
@@ -246,6 +214,76 @@
     .label {
       font-size: 36px;
       fill: #fff;
+      resize: vertical;
+      background: #fff;
+    }
+
+    textarea {
+      min-height: 72px;
+    }
+
+    .node-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+    }
+
+    .node-children {
+      margin-top: 1rem;
+      padding-left: 1rem;
+      border-left: 3px solid rgba(25, 42, 86, 0.15);
+      display: grid;
+      gap: 1rem;
+    }
+
+    .info {
+      background: rgba(25, 42, 86, .08);
+      border-radius: 12px;
+      padding: 1rem;
+      color: var(--navy-dark);
+      font-size: .92rem;
+      margin-bottom: 1rem;
+    }
+
+    .preview {
+      counter-reset: milestone;
+      display: grid;
+      gap: 1.25rem;
+    }
+
+    .preview-card {
+      background: linear-gradient(135deg, rgba(25, 42, 86, 0.95), rgba(78, 106, 168, 0.9));
+      border-radius: 20px;
+      padding: 1.5rem;
+      color: #f9fbff;
+      box-shadow: 0 14px 30px -22px rgba(8, 15, 45, 0.9);
+      position: relative;
+    }
+
+    .preview-card h3 {
+      margin: 0 0 .5rem;
+      font-size: 1.35rem;
+      letter-spacing: -.01em;
+    }
+
+    .preview-card p {
+      margin: 0 0 1rem;
+      color: rgba(245, 248, 255, .82);
+      font-size: .98rem;
+    }
+
+    .preview-card::before {
+      counter-increment: milestone;
+      content: counter(milestone);
+      position: absolute;
+      top: -16px;
+      right: 16px;
+      background: rgba(255, 255, 255, .1);
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
       font-weight: 700;
       pointer-events: none;
       text-anchor: middle;
@@ -270,170 +308,26 @@
     }
     .dimmed text {
       fill: #aaa !important;
-      resize: vertical;
-      background: #fff;
-    }
-
-    textarea {
-      min-height: 64px;
-    }
-
-    .node-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: .4rem;
-    }
-
-    .node-children {
-      margin-top: 1rem;
-      padding-left: .9rem;
-      border-left: 3px solid rgba(25, 42, 86, 0.15);
-      display: grid;
-      gap: .75rem;
-    }
-
-    .info {
-      background: rgba(25, 42, 86, .05);
-      border-radius: 12px;
-      padding: .85rem;
-      color: var(--navy-dark);
-      font-size: .86rem;
-      margin-bottom: .85rem;
-    }
-
-    .preview {
-      counter-reset: milestone;
-      display: grid;
-      gap: .9rem;
-    }
-
-    .preview-card {
-      background: #fff;
-      border-radius: 16px;
-      padding: 1.1rem 1.2rem;
-      color: var(--ink);
-      border: 1px solid rgba(25, 42, 86, 0.08);
-      box-shadow: 0 6px 18px -18px rgba(12, 20, 40, 0.55);
-      position: relative;
-      transition: transform .18s ease, box-shadow .18s ease;
-    }
-
-    .preview-card h3 {
-      margin: 0;
-      font-size: 1.05rem;
-      letter-spacing: -.01em;
-    }
-
-    .preview-card p {
-      margin: .45rem 0 0;
-      color: var(--muted);
-      font-size: .88rem;
-    }
-
-    .preview-card.depth-1::before {
-      counter-increment: milestone;
-      content: counter(milestone);
-      position: absolute;
-      top: -12px;
-      right: 14px;
-      background: var(--navy);
-      color: #fff;
-      width: 32px;
-      height: 32px;
-      border-radius: 10px;
-      display: grid;
-      place-items: center;
-      font-weight: 600;
-      font-size: .9rem;
-      box-shadow: 0 6px 12px -10px rgba(12, 20, 40, 0.6);
+      font-size: 1.1rem;
     }
 
     .preview-children {
       margin-top: 1rem;
-      border-left: 1px dashed rgba(25, 42, 86, 0.2);
-      padding-left: 1rem;
+      border-left: 2px dashed rgba(255, 255, 255, .3);
+      padding-left: 1.25rem;
       display: grid;
-      gap: .75rem;
+      gap: 1rem;
     }
 
-    .preview-card.depth-1 {
-      padding-right: 2.4rem;
-    }
-
-    .preview-card.depth-2 {
-      background: rgba(25, 42, 86, 0.03);
-    }
-
-    .preview-card.depth-3 {
-      background: rgba(25, 42, 86, 0.025);
-    }
-
-    .preview-card.depth-4,
-    .preview-card.depth-5,
-    .preview-card.depth-6 {
-      background: rgba(25, 42, 86, 0.02);
-    }
-
-    .preview-card.collapsed {
-      cursor: pointer;
-    }
-
-    .preview-card.collapsed:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 10px 24px -20px rgba(12, 20, 40, 0.55);
-    }
-
-    .preview-card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: .75rem;
-    }
-
-    .preview-meta {
-      display: flex;
-      align-items: center;
-      gap: .5rem;
-      font-size: .75rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .08em;
-    }
-
-    .preview-toggle {
-      appearance: none;
-      border: 1px solid rgba(25, 42, 86, 0.18);
-      background: rgba(25, 42, 86, 0.05);
-      border-radius: 999px;
-      padding: .25rem .6rem;
-      font-size: .72rem;
-      color: var(--navy);
-      cursor: pointer;
-      transition: background .15s ease, border-color .15s ease;
-    }
-
-    .preview-toggle:hover {
-      background: rgba(25, 42, 86, 0.1);
-      border-color: rgba(25, 42, 86, 0.26);
-    }
-
-    .preview-count {
-      background: rgba(25, 42, 86, 0.08);
-      padding: .15rem .5rem;
-      border-radius: 999px;
-    }
-
-    .preview-card.collapsed .preview-toggle::after {
-      content: ' ▾';
-    }
-
-    .preview-card.expanded .preview-toggle::after {
-      content: ' ▴';
+    .preview-children .preview-card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.15));
+      color: #fff;
+      box-shadow: none;
     }
 
     .status {
       margin-top: .75rem;
-      font-size: .85rem;
+      font-size: .9rem;
       color: var(--muted);
       min-height: 1.2rem;
     }
@@ -446,10 +340,6 @@
     }
 
     @media (max-width: 1024px) {
-      header {
-        justify-content: flex-start;
-      }
-
       main {
         grid-template-columns: 1fr;
       }
@@ -467,11 +357,6 @@
     <div>
       <h1>Critical Client Flow (CCF) — Editor</h1>
       <p>Design and maintain your milestones, sub stages, and deep-dive sub steps with full control.</p>
-    </div>
-    <div class="layout-controls">
-      <label for="panelSplit">Layout Balance</label>
-      <input type="range" id="panelSplit" min="30" max="70" value="55" />
-      <span id="panelSplitValue">55% / 45%</span>
     </div>
   </header>
 
@@ -586,9 +471,6 @@
       ]}
     const MAX_DEPTH = 6;
     const STORAGE_KEY = 'ccf-editor-data-v1';
-    const previewState = {
-      expanded: new Set()
-    };
 
     const defaultFlow = [
       {
@@ -696,7 +578,6 @@
       return 'id-' + Math.random().toString(36).slice(2, 9);
     }
 
-        gNodes.appendChild(g);
     const editorEl = document.getElementById('editor');
     const previewEl = document.getElementById('preview');
     const statusEl = document.getElementById('status');
@@ -705,17 +586,9 @@
     const exportBtn = document.getElementById('exportJson');
     const importBtn = document.getElementById('importJson');
     const importFileInput = document.getElementById('importFile');
-    const panelSplitInput = document.getElementById('panelSplit');
-    const panelSplitValue = document.getElementById('panelSplitValue');
     const emptyTemplate = document.getElementById('emptyState');
 
-        if(i<items.length-1){
-          const path=document.createElementNS('http://www.w3.org/2000/svg','path');
-          path.setAttribute('d',`M ${centerX+NODE_W/2} ${y+NODE_H} L ${centerX+NODE_W/2} ${y+NODE_H+SPACING}`);
-          path.setAttribute('class','edge');
-          gEdges.appendChild(path);
     let flow = loadFromStorage();
-    updatePanelSplit(Number(panelSplitInput?.value || 55));
     renderAll();
 
     addRootBtn.addEventListener('click', () => {
@@ -727,10 +600,8 @@
     exportBtn.addEventListener('click', downloadJson);
     importBtn.addEventListener('click', () => importFileInput.click());
     importFileInput.addEventListener('change', handleImport);
-    panelSplitInput?.addEventListener('input', event => {
-      updatePanelSplit(Number(event.target.value));
-    });
 
+        gNodes.appendChild(g);
     function createNode(title = 'New Step', description = '') {
       return {
         id: createId(),
@@ -740,6 +611,11 @@
       };
     }
 
+        if(i<items.length-1){
+          const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+          path.setAttribute('d',`M ${centerX+NODE_W/2} ${y+NODE_H} L ${centerX+NODE_W/2} ${y+NODE_H+SPACING}`);
+          path.setAttribute('class','edge');
+          gEdges.appendChild(path);
     function loadFromStorage() {
       try {
         const stored = localStorage.getItem(STORAGE_KEY);
@@ -755,6 +631,7 @@
       return structuredClone(defaultFlow);
     }
 
+        y += NODE_H + SPACING;
     function persist() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(flow));
@@ -763,7 +640,6 @@
       }
     }
 
-        y += NODE_H + SPACING;
     function renderAll(announce = false) {
       renderEditor();
       renderPreview();
@@ -875,7 +751,6 @@
       addChildBtn.textContent = '➕ Add Sub-step';
       addChildBtn.addEventListener('click', () => {
         node.children.push(createNode(`New ${depth >= 1 ? 'Sub-step' : 'Item'}`));
-        previewState.expanded.add(node.id);
         renderAll(true);
       });
       if (depth >= MAX_DEPTH) {
@@ -889,6 +764,17 @@
       moveUpBtn.addEventListener('click', () => {
         if (index > 0) {
           moveNode(parentArray, index, index - 1);
+          renderAll();
+        }
+      });
+      if (index === 0) moveUpBtn.disabled = true;
+
+      const moveDownBtn = document.createElement('button');
+      moveDownBtn.type = 'button';
+      moveDownBtn.textContent = '⬇️ Move Down';
+      moveDownBtn.addEventListener('click', () => {
+        if (index < parentArray.length - 1) {
+          moveNode(parentArray, index, index + 1);
           renderAll();
         }
         y+=NODE_H+SPACING;
@@ -905,15 +791,17 @@
       gNodes.querySelectorAll('g').forEach(node=>{
         if(node===g){node.classList.remove('dimmed');}
         else{node.classList.add('dimmed');}
-      if (index === 0) moveUpBtn.disabled = true;
+      if (index === parentArray.length - 1) moveDownBtn.disabled = true;
 
-      const moveDownBtn = document.createElement('button');
-      moveDownBtn.type = 'button';
-      moveDownBtn.textContent = '⬇️ Move Down';
-      moveDownBtn.addEventListener('click', () => {
-        if (index < parentArray.length - 1) {
-          moveNode(parentArray, index, index + 1);
-          renderAll();
+      const deleteBtn = document.createElement('button');
+      deleteBtn.type = 'button';
+      deleteBtn.textContent = '🗑️ Remove';
+      deleteBtn.classList.add('ghost-btn');
+      deleteBtn.addEventListener('click', () => {
+        const shouldDelete = confirm('Remove this item and all nested steps?');
+        if (shouldDelete) {
+          parentArray.splice(index, 1);
+          renderAll(true);
         }
       });
     });
@@ -925,21 +813,12 @@
       if(currentLevel==='overview') showSubsteps(id);
     });
     backBtn.addEventListener('click',showOverview);
-      if (index === parentArray.length - 1) moveDownBtn.disabled = true;
 
-      const deleteBtn = document.createElement('button');
-      deleteBtn.type = 'button';
-      deleteBtn.textContent = '🗑️ Remove';
-      deleteBtn.classList.add('ghost-btn');
-      deleteBtn.addEventListener('click', () => {
-        const shouldDelete = confirm('Remove this item and all nested steps?');
-        if (shouldDelete) {
-          collapseBranch(node);
-          parentArray.splice(index, 1);
-          renderAll(true);
-        }
-      });
-
+    // view reset
+    let view={x:0,y:0,w:2000,h:4000};
+    function applyView(){svg.setAttribute('viewBox',`${view.x} ${view.y} ${view.w} ${view.h}`)}
+    function resetView(){view={x:0,y:0,w:2000,h:4000};applyView();}
+    applyView();
       actions.append(addChildBtn, moveUpBtn, moveDownBtn, deleteBtn);
       fields.appendChild(actions);
 
@@ -975,68 +854,20 @@
 
     function buildPreviewNode(node, depth, numbering) {
       const card = document.createElement('article');
-      card.className = `preview-card depth-${depth}`;
-
-      const hasChildren = node.children && node.children.length;
-      const isExpanded = hasChildren && previewState.expanded.has(node.id);
-      if (hasChildren && !isExpanded) {
-        card.classList.add('collapsed');
-      }
-      if (hasChildren && isExpanded) {
-        card.classList.add('expanded');
-      }
-
-      const header = document.createElement('div');
-      header.className = 'preview-card-header';
+      card.className = 'preview-card';
 
       const title = document.createElement('h3');
       title.textContent = numbering ? `${numbering} — ${node.title}` : node.title;
-      header.appendChild(title);
+      card.appendChild(title);
 
-      if (hasChildren) {
-        const meta = document.createElement('div');
-        meta.className = 'preview-meta';
-
-        const count = document.createElement('span');
-        count.className = 'preview-count';
-        const label = depth === 1 ? 'sub stage' : 'step';
-        const total = node.children.length;
-        count.textContent = `${total} ${label}${total !== 1 ? 's' : ''}`;
-        meta.appendChild(count);
-
-        const toggle = document.createElement('button');
-        toggle.type = 'button';
-        toggle.className = 'preview-toggle';
-        toggle.textContent = isExpanded ? 'Hide details' : 'Show details';
-        toggle.addEventListener('click', event => {
-          event.stopPropagation();
-          togglePreviewNode(node.id);
-        });
-        meta.appendChild(toggle);
-        header.appendChild(meta);
-
-        if (!isExpanded) {
-          card.addEventListener('click', () => {
-            togglePreviewNode(node.id);
-          });
-        }
-      }
-
-    // view reset
-    let view={x:0,y:0,w:2000,h:4000};
-    function applyView(){svg.setAttribute('viewBox',`${view.x} ${view.y} ${view.w} ${view.h}`)}
-    function resetView(){view={x:0,y:0,w:2000,h:4000};applyView();}
-    applyView();
-      card.appendChild(header);
-
-    showOverview();
       if (node.description) {
         const description = document.createElement('p');
         description.textContent = node.description;
         card.appendChild(description);
       }
 
-      if (hasChildren && isExpanded) {
+    showOverview();
+      if (node.children && node.children.length) {
         const childWrapper = document.createElement('div');
         childWrapper.className = 'preview-children';
         node.children.forEach((child, index) => {
@@ -1106,7 +937,6 @@
           throw new Error('Invalid structure. Expecting { milestones: [] } or an array.');
         }
         flow = Array.isArray(parsed) ? parsed : parsed.milestones;
-        previewState.expanded.clear();
         normalizeIds(flow);
         renderAll(true);
         flashStatus('JSON imported successfully.', 'success');
@@ -1126,33 +956,6 @@
           normalizeIds(node.children);
         }
       });
-    }
-
-    function collapseBranch(node) {
-      previewState.expanded.delete(node.id);
-      if (node.children) {
-        node.children.forEach(child => collapseBranch(child));
-      }
-    }
-
-    function togglePreviewNode(id) {
-      if (previewState.expanded.has(id)) {
-        previewState.expanded.delete(id);
-      } else {
-        previewState.expanded.add(id);
-      }
-      renderPreview();
-    }
-
-    function updatePanelSplit(value) {
-      if (!Number.isFinite(value)) return;
-      const clamped = Math.min(70, Math.max(30, value));
-      const previewShare = 100 - clamped;
-      document.documentElement.style.setProperty('--editor-fr', `${clamped}fr`);
-      document.documentElement.style.setProperty('--preview-fr', `${previewShare}fr`);
-      if (panelSplitValue) {
-        panelSplitValue.textContent = `${clamped}% / ${previewShare}%`;
-      }
     }
 
     function flashStatus(message, type) {
