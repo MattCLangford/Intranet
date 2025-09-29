@@ -18,7 +18,7 @@
   .canvas{position:relative;height:calc(100vh - 66px);overflow:auto}
   svg{width:2200px;height:4000px;display:block}
   .node rect{stroke:none;rx:28;ry:28;filter:drop-shadow(0 4px 8px rgba(0,0,0,.12))}
-  .label{font-size:24px;fill:#fff;font-weight:700;pointer-events:auto;cursor:text;text-anchor:middle;dominant-baseline:middle}
+  .label{font-size:24px;font-weight:700;pointer-events:auto;cursor:text;display:flex;align-items:center;justify-content:center;padding:0 1.5rem;text-align:center;white-space:pre-wrap;color:#fff;height:100%;}
   .edge{stroke:var(--edge);stroke-width:2.2;fill:none;marker-end:url(#arrow)}
   .selected rect{outline:3px solid var(--ring)}
   .linking rect{outline:3px dashed #88b}
@@ -121,10 +121,15 @@ function drawNode(n,index){
   r.setAttribute('width',nodeW(n)); r.setAttribute('height',nodeH(n));
   r.setAttribute('fill',gradForIndex(index));
   g.appendChild(r);
-  const t=document.createElementNS('http://www.w3.org/2000/svg','text');
-  t.setAttribute('x',n.x+nodeW(n)/2); t.setAttribute('y',n.y+nodeH(n)/2);
-  t.setAttribute('class','label'); t.textContent=n.title||'';
-  g.appendChild(t);
+  const fo=document.createElementNS('http://www.w3.org/2000/svg','foreignObject');
+  fo.setAttribute('x',n.x); fo.setAttribute('y',n.y);
+  fo.setAttribute('width',nodeW(n)); fo.setAttribute('height',nodeH(n));
+  const label=document.createElement('div');
+  label.setAttribute('xmlns','http://www.w3.org/1999/xhtml');
+  label.setAttribute('class','label');
+  label.textContent=n.title||'';
+  fo.appendChild(label);
+  g.appendChild(fo);
   gNodes.appendChild(g);
 
   g.addEventListener('mousedown',(e)=>{
@@ -144,7 +149,7 @@ function drawNode(n,index){
     dragging={id,startX:pt.x,startY:pt.y,nodeStartX:n.x,nodeStartY:n.y};
   });
 
-  [r,t].forEach(el=>{
+  [r,label].forEach(el=>{
     el.addEventListener('dblclick',(e)=>{e.stopPropagation();inlineEdit(n);});
   });
 }
@@ -172,15 +177,45 @@ document.addEventListener('mouseup',()=>{
 /* Inline edit */
 function inlineEdit(node){
   const bbox={x:node.x,y:node.y,w:nodeW(node),h:nodeH(node)};
-  const center=svgToClient(bbox.x+bbox.w/2,bbox.y+bbox.h/2);
-  const input=document.createElement('input');
-  input.type='text'; input.value=node.title||'';
-  input.style.position='fixed'; input.style.left=(center.x-180)+'px'; input.style.top=(center.y-16)+'px';
-  input.style.width='360px'; input.style.padding='6px 8px'; input.style.border='1px solid #cfd3da'; input.style.borderRadius='8px'; input.style.zIndex=9999; input.style.font='16px system-ui';
-  document.body.appendChild(input); input.focus(); input.select();
-  const commit=()=>{node.title=input.value.trim()||node.title;document.body.removeChild(input);saveLocal();render();};
-  input.addEventListener('keydown',e=>{if(e.key==='Enter')commit();if(e.key==='Escape')document.body.removeChild(input);});
-  input.addEventListener('blur',commit);
+  const size={w:nodeW(node),h:nodeH(node)};
+  const topLeft=svgToClient(bbox.x,bbox.y);
+  const textarea=document.createElement('textarea');
+  textarea.value=node.title||'';
+  textarea.style.position='fixed';
+  textarea.style.left=(topLeft.x+12)+'px';
+  textarea.style.top=(topLeft.y+12)+'px';
+  textarea.style.width=Math.max(200,size.w-24)+'px';
+  textarea.style.height=Math.max(80,size.h-24)+'px';
+  textarea.style.padding='10px 12px';
+  textarea.style.border='1px solid #cfd3da';
+  textarea.style.borderRadius='12px';
+  textarea.style.zIndex=9999;
+  textarea.style.font='20px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif';
+  textarea.style.fontWeight='700';
+  textarea.style.textAlign='center';
+  textarea.style.resize='none';
+  textarea.style.boxShadow='0 4px 8px rgba(0,0,0,0.12)';
+  textarea.style.background='rgba(255,255,255,0.95)';
+  document.body.appendChild(textarea);
+  textarea.focus(); textarea.select();
+  const commit=()=>{
+    const value=textarea.value.replace(/\r\n/g,'\n');
+    if(!document.body.contains(textarea)) return;
+    document.body.removeChild(textarea);
+    if(value.trim()==='') {render(); return;}
+    node.title=value;
+    saveLocal();
+    render();
+  };
+  const cancel=()=>{
+    if(document.body.contains(textarea)) document.body.removeChild(textarea);
+    render();
+  };
+  textarea.addEventListener('keydown',e=>{
+    if((e.metaKey||e.ctrlKey)&&e.key==='Enter'){commit();}
+    else if(e.key==='Escape'){cancel();}
+  });
+  textarea.addEventListener('blur',commit);
 }
 
 /* Buttons */
