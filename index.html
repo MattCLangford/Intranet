@@ -3,72 +3,44 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Wise Productions — Critical Client Flow (Dataverse Editor)</title>
+<title>Wise Productions — Critical Client Flow (Local Editor)</title>
 <style>
   :root{
-    --paper:#fdfdfc;
-    --navy:#192a56;
-    --rose:#9e768f;
-    --text:#333;
-    --edge:#555;
-    --ring:#b6c1ff;
+    --paper:#fdfdfc; --navy:#192a56; --rose:#9e768f; --text:#333; --edge:#555; --ring:#b6c1ff;
   }
   *{box-sizing:border-box}
-  body{
-    margin:0;background:var(--paper);color:var(--text);
-    font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;
-  }
-  header{
-    position:sticky;top:0;z-index:10;display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;
-    padding:.8rem 1rem;border-bottom:1px solid #ddd;background:var(--paper)
-  }
-  .title{font-weight:700;font-size:1.15rem;color:var(--navy);margin-right:auto}
-  .btn{appearance:none;border:1px solid #cfd3da;background:#fff;color:#111;padding:.5rem .8rem;border-radius:8px;cursor:pointer}
+  body{margin:0;background:var(--paper);color:var(--text);font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;}
+  header{position:sticky;top:0;z-index:10;display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;padding:.8rem 1rem;border-bottom:1px solid #ddd;background:var(--paper)}
+  .title{font-weight:700;font-size:1.1rem;color:var(--navy);margin-right:auto}
+  .btn{appearance:none;border:1px solid #cfd3da;background:#fff;color:#111;padding:.45rem .75rem;border-radius:8px;cursor:pointer}
   .btn.primary{background:var(--navy);color:#fff;border-color:var(--navy)}
   .btn[disabled]{opacity:.5;cursor:not-allowed}
   .canvas{position:relative;height:calc(100vh - 66px);overflow:auto}
   svg{width:2200px;height:4000px;display:block}
   .node rect{stroke:none;rx:28;ry:28;filter:drop-shadow(0 4px 8px rgba(0,0,0,.12))}
-  .label{
-    font-size:24px;
-    fill:#fff;
-    font-weight:700;
-    pointer-events:auto;   /* now clickable */
-    cursor:text;
-    text-anchor:middle;
-    dominant-baseline:middle
-  }
-  .sub{
-    font-size:14px;
-    fill:#f1f5f9;
-    pointer-events:auto;   /* now clickable */
-    cursor:text;
-    text-anchor:middle;
-    dominant-baseline:hanging
-  }
+  .label{font-size:24px;fill:#fff;font-weight:700;pointer-events:auto;cursor:text;text-anchor:middle;dominant-baseline:middle}
+  .sub{font-size:14px;fill:#f1f5f9;pointer-events:auto;cursor:text;text-anchor:middle;dominant-baseline:hanging}
   .edge{stroke:var(--edge);stroke-width:2.2;fill:none;marker-end:url(#arrow)}
   .selected rect{outline:3px solid var(--ring)}
   .linking rect{outline:3px dashed #88b}
-  .ghost rect{opacity:.6;stroke-dasharray:6 6;stroke:#bbb;stroke-width:2}
   .toolbar{display:flex;gap:.5rem;flex-wrap:wrap}
   .stat{font-size:.85rem;color:#666}
 </style>
 </head>
 <body>
 <header>
-  <div class="title">Wise Productions — Critical Client Flow (Dataverse Editor)</div>
+  <div class="title">Wise Productions — Critical Client Flow (Local Editor)</div>
   <div class="toolbar">
     <button class="btn primary" id="addMilestone">+ Milestone</button>
     <button class="btn" id="addSubstep">+ Substep</button>
     <button class="btn" id="linkModeBtn">Link Steps</button>
     <button class="btn" id="deleteBtn">− Delete</button>
-    <button class="btn" id="saveAllBtn">Save All</button>
+    <button class="btn" id="saveAllBtn">Save</button>
   </div>
   <div class="toolbar">
     <button class="btn" id="exportBtn">Export JSON</button>
     <label class="btn" for="importInput" style="cursor:pointer">Import JSON</label>
     <input id="importInput" type="file" accept="application/json" style="display:none">
-    <button class="btn" id="loadLocalBtn">Load Local</button>
     <button class="btn" id="clearLocalBtn">Clear Local</button>
   </div>
   <div class="stat" id="status">Ready</div>
@@ -81,21 +53,11 @@
         <path d="M0 0 L10 5 L0 10 z" fill="#555"></path>
       </marker>
       <!-- Navy → Rose gradient set -->
-      <linearGradient id="grad0" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stop-color="#192a56"/><stop offset="100%" stop-color="#2e3c6a"/>
-      </linearGradient>
-      <linearGradient id="grad1" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stop-color="#2e3c6a"/><stop offset="100%" stop-color="#4c4d77"/>
-      </linearGradient>
-      <linearGradient id="grad2" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stop-color="#4c4d77"/><stop offset="100%" stop-color="#6b5c7e"/>
-      </linearGradient>
-      <linearGradient id="grad3" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stop-color="#6b5c7e"/><stop offset="100%" stop-color="#876683"/>
-      </linearGradient>
-      <linearGradient id="grad4" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stop-color="#876683"/><stop offset="100%" stop-color="#9e768f"/>
-      </linearGradient>
+      <linearGradient id="grad0" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#192a56"/><stop offset="100%" stop-color="#2e3c6a"/></linearGradient>
+      <linearGradient id="grad1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#2e3c6a"/><stop offset="100%" stop-color="#4c4d77"/></linearGradient>
+      <linearGradient id="grad2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#4c4d77"/><stop offset="100%" stop-color="#6b5c7e"/></linearGradient>
+      <linearGradient id="grad3" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6b5c7e"/><stop offset="100%" stop-color="#876683"/></linearGradient>
+      <linearGradient id="grad4" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#876683"/><stop offset="100%" stop-color="#9e768f"/></linearGradient>
     </defs>
     <g id="edges"></g>
     <g id="nodes"></g>
@@ -103,34 +65,59 @@
 </div>
 
 <script>
-/* ------------------ Dataverse config trimmed for brevity ------------------ */
-function uid(){ return 'id_'+crypto.randomUUID(); }
+/* ------------------------------- Data model ------------------------------- */
+const LS_KEY = 'wp_process_editor_local';
 const Types = { Milestone:0, Substep:1 };
+function uid(){ return 'id_'+crypto.randomUUID(); }
 function gradForIndex(i){ return `url(#grad${Math.min(i%5,4)})`; }
 
-let model={ nodes:[
-  {id:uid(),title:'Enquiry',type:Types.Milestone,x:200,y:120,next:[]},
-  {id:uid(),title:'Qualification',type:Types.Milestone,x:200,y:320,next:[]}
-]};
+let model = { nodes: [] }; // { id,title,type,x,y,parent?,next:[] }
 
-const svg=document.getElementById('svg');
-const gNodes=document.getElementById('nodes');
-const gEdges=document.getElementById('edges');
-let selectedId=null;
+/* ----------------------------- DOM references ----------------------------- */
+const svg = document.getElementById('svg');
+const gNodes = document.getElementById('nodes');
+const gEdges = document.getElementById('edges');
+const statusEl = document.getElementById('status');
 
-function nodeW(n){ return n.type===Types.Milestone?420:320; }
-function nodeH(n){ return n.type===Types.Milestone?160:120; }
+const addMilestoneBtn = document.getElementById('addMilestone');
+const addSubstepBtn   = document.getElementById('addSubstep');
+const deleteBtn       = document.getElementById('deleteBtn');
+const linkModeBtn     = document.getElementById('linkModeBtn');
+const saveAllBtn      = document.getElementById('saveAllBtn');
+const exportBtn       = document.getElementById('exportBtn');
+const importInput     = document.getElementById('importInput');
+const clearLocalBtn   = document.getElementById('clearLocalBtn');
+
+/* ------------------------------ Editor state ------------------------------ */
+let selectedId = null;
+let linkMode = false;
+let linkSourceId = null;
+let dragging = null; // { id, startX, startY, nodeStartX, nodeStartY }
+
+/* --------------------------------- Render -------------------------------- */
+function nodeW(n){ return n.type===Types.Milestone ? 420 : 320; }
+function nodeH(n){ return n.type===Types.Milestone ? 160 : 120; }
 
 function render(){
-  gNodes.innerHTML=''; gEdges.innerHTML='';
+  gNodes.innerHTML = '';
+  gEdges.innerHTML = '';
+
+  // edges under nodes
   for(const n of model.nodes){
-    if(!n.next) continue;
+    if(!n.next || !n.next.length) continue;
     for(const tid of n.next){
-      const t=model.nodes.find(x=>x.id===tid); if(t) drawEdge(n,t);
+      const t = model.nodes.find(x=>x.id===tid);
+      if(t) drawEdge(n, t);
     }
   }
-  model.nodes.forEach((n,i)=>drawNode(n,i));
+
+  // nodes
+  model.nodes.forEach((n,i)=> drawNode(n,i));
+
+  updateButtons();
+  setStatus('Ready');
 }
+
 function drawEdge(a,b){
   const ax=a.x+nodeW(a)/2, ay=a.y+nodeH(a)/2;
   const bx=b.x+nodeW(b)/2, by=b.y+nodeH(b)/2;
@@ -139,27 +126,46 @@ function drawEdge(a,b){
   p.setAttribute('d',`M ${ax} ${ay} L ${bx} ${by}`);
   gEdges.appendChild(p);
 }
-function drawNode(n,i){
+
+function drawNode(n,index){
   const g=document.createElementNS('http://www.w3.org/2000/svg','g');
   g.setAttribute('data-id',n.id);
-  g.setAttribute('class','node');
+  g.setAttribute('class','node' + (selectedId===n.id ? ' selected' : '') + (linkMode ? ' linking' : ''));
 
   const r=document.createElementNS('http://www.w3.org/2000/svg','rect');
   r.setAttribute('x',n.x); r.setAttribute('y',n.y);
   r.setAttribute('width',nodeW(n)); r.setAttribute('height',nodeH(n));
-  r.setAttribute('fill',gradForIndex(i));
+  r.setAttribute('fill',gradForIndex(index));
   g.appendChild(r);
 
   const t=document.createElementNS('http://www.w3.org/2000/svg','text');
-  t.setAttribute('x',n.x+nodeW(n)/2);
-  t.setAttribute('y',n.y+nodeH(n)/2);
-  t.setAttribute('class','label');
-  t.textContent=n.title;
+  t.setAttribute('x',n.x+nodeW(n)/2); t.setAttribute('y',n.y+nodeH(n)/2);
+  t.setAttribute('class','label'); t.textContent=n.title || (n.type===Types.Milestone?'Milestone':'Substep');
   g.appendChild(t);
 
   gNodes.appendChild(g);
 
-  // enable dblclick on both rect and text
+  // Drag & select
+  g.addEventListener('mousedown',(e)=>{
+    if(e.button!==0) return;
+    const id=g.getAttribute('data-id');
+    if(linkMode){
+      if(!linkSourceId){ linkSourceId=id; setStatus('Select a target to create a link…'); }
+      else if(linkSourceId && linkSourceId!==id){
+        const src=model.nodes.find(x=>x.id===linkSourceId);
+        src.next=src.next||[];
+        if(!src.next.includes(id)) src.next.push(id);
+        saveLocal(); render(); setStatus('Link created.');
+        linkSourceId=null; linkMode=false; linkModeBtn.classList.remove('primary');
+      } else { linkSourceId=null; linkMode=false; linkModeBtn.classList.remove('primary'); setStatus('Link cancelled.'); }
+      selectedId=id; return;
+    }
+    selectedId=id; render();
+    const pt=clientToSvg(e.clientX,e.clientY);
+    dragging={ id, startX:pt.x, startY:pt.y, nodeStartX:n.x, nodeStartY:n.y };
+  });
+
+  // Double-click edit (on rect or text)
   [r,t].forEach(el=>{
     el.addEventListener('dblclick',(e)=>{
       e.stopPropagation();
@@ -167,12 +173,25 @@ function drawNode(n,i){
     });
   });
 }
-function svgToClient(x,y){
-  const pt=svg.createSVGPoint(); pt.x=x; pt.y=y;
-  const ctm=svg.getScreenCTM();
-  const p=pt.matrixTransform(ctm);
-  return {x:p.x,y:p.y};
-}
+
+/* ----------------------------- Drag handling ------------------------------ */
+document.addEventListener('mousemove',(e)=>{
+  if(!dragging) return;
+  const pt=clientToSvg(e.clientX,e.clientY);
+  const dx=pt.x-dragging.startX, dy=pt.y-dragging.startY;
+  const node=model.nodes.find(x=>x.id===dragging.id);
+  node.x=Math.max(20, dragging.nodeStartX+dx);
+  node.y=Math.max(20, dragging.nodeStartY+dy);
+  render();
+});
+document.addEventListener('mouseup',()=>{
+  if(dragging){
+    saveLocal();
+    dragging=null;
+  }
+});
+
+/* --------------------------- Inline text editing -------------------------- */
 function inlineEdit(node){
   const bbox={x:node.x,y:node.y,w:nodeW(node),h:nodeH(node)};
   const center=svgToClient(bbox.x+bbox.w/2,bbox.y+bbox.h/2);
@@ -180,7 +199,7 @@ function inlineEdit(node){
   input.type='text'; input.value=node.title||'';
   input.style.position='fixed';
   input.style.left=(center.x-180)+'px';
-  input.style.top=(center.y-15)+'px';
+  input.style.top=(center.y-16)+'px';
   input.style.width='360px';
   input.style.padding='6px 8px';
   input.style.border='1px solid #cfd3da';
@@ -189,17 +208,81 @@ function inlineEdit(node){
   input.style.font='16px system-ui';
   document.body.appendChild(input);
   input.focus(); input.select();
-  function commit(){
+  const commit=()=>{
     node.title=input.value.trim()||node.title;
     document.body.removeChild(input);
-    render();
-  }
-  input.addEventListener('keydown',e=>{
-    if(e.key==='Enter') commit();
-    if(e.key==='Escape') document.body.removeChild(input);
-  });
+    saveLocal(); render();
+  };
+  input.addEventListener('keydown',e=>{ if(e.key==='Enter') commit(); if(e.key==='Escape') document.body.removeChild(input);});
   input.addEventListener('blur',commit);
 }
+
+/* ------------------------------- Buttons ---------------------------------- */
+addMilestoneBtn.onclick=()=>{
+  const id=uid();
+  model.nodes.push({id,title:'New Milestone',type:Types.Milestone,x:150,y:100+(model.nodes.length*60),parent:null,next:[]});
+  selectedId=id; saveLocal(); render();
+};
+addSubstepBtn.onclick=()=>{
+  const parent = selectedId && model.nodes.find(n=>n.id===selectedId && n.type===Types.Milestone);
+  const id=uid();
+  const node={id,title:'New Substep',type:Types.Substep,x: (parent?parent.x+40:200), y:(parent?parent.y+200:250), parent: parent?.id||null, next:[]};
+  model.nodes.push(node);
+  if(parent){ parent.next = parent.next || []; parent.next.push(id); }
+  selectedId=id; saveLocal(); render();
+};
+deleteBtn.onclick=()=>{
+  if(!selectedId) return;
+  for(const n of model.nodes){ if(n.next) n.next=n.next.filter(t=>t!==selectedId); }
+  model.nodes = model.nodes.filter(n=>n.id!==selectedId);
+  selectedId=null; saveLocal(); render();
+};
+linkModeBtn.onclick=()=>{
+  linkMode=!linkMode; linkSourceId=null;
+  linkModeBtn.classList.toggle('primary',linkMode);
+  setStatus(linkMode?'Link mode: click source then target.':'Link mode off.');
+};
+saveAllBtn.onclick=()=>{ saveLocal(); setStatus('Saved.'); };
+
+/* ---------------------------- Import / Export ----------------------------- */
+exportBtn.onclick=()=>{
+  const blob=new Blob([JSON.stringify(model,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob); const a=document.createElement('a');
+  a.href=url; a.download='process.json'; a.click(); URL.revokeObjectURL(url);
+};
+importInput.onchange=async (e)=>{
+  const f=e.target.files?.[0]; if(!f) return;
+  try{
+    const txt=await f.text(); const json=JSON.parse(txt);
+    if(!json.nodes) throw new Error('Invalid file: missing nodes');
+    model=json; selectedId=null; saveLocal(); render();
+  }catch(err){ alert('Import failed: '+err.message);}
+  finally{ importInput.value=''; }
+};
+clearLocalBtn.onclick=()=>{
+  localStorage.removeItem(LS_KEY); setStatus('Local data cleared.');
+};
+
+/* ------------------------------- Utilities -------------------------------- */
+function clientToSvg(cx,cy){ const pt=svg.createSVGPoint(); pt.x=cx; pt.y=cy; const inv=svg.getScreenCTM().inverse(); return pt.matrixTransform(inv); }
+function svgToClient(x,y){ const pt=svg.createSVGPoint(); pt.x=x; pt.y=y; const m=svg.getScreenCTM(); const p=pt.matrixTransform(m); return {x:p.x,y:p.y}; }
+function setStatus(m){ statusEl.textContent=m; }
+function loadLocal(){
+  const s=localStorage.getItem(LS_KEY);
+  if(s){ try{ model=JSON.parse(s); }catch{ /* ignore */ } }
+  if(!model.nodes || model.nodes.length===0){
+    // Seed starter flow
+    const m1={id:uid(),title:'Enquiry',type:Types.Milestone,x:260,y:120,parent:null,next:[]};
+    const m2={id:uid(),title:'Qualification',type:Types.Milestone,x:260,y:360,parent:null,next:[]};
+    const s1={id:uid(),title:'Capture enquiry',type:Types.Substep,x:560,y:120,parent:m1.id,next:[]};
+    const s2={id:uid(),title:'Log in Opsync',type:Types.Substep,x:760,y:120,parent:m1.id,next:[]};
+    m1.next=[s1.id,s2.id]; model.nodes=[m1,m2,s1,s2];
+  }
+}
+function saveLocal(){ localStorage.setItem(LS_KEY, JSON.stringify(model)); }
+
+/* ------------------------------- Init ------------------------------------ */
+loadLocal();
 render();
 </script>
 </body>
